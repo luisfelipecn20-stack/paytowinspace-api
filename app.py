@@ -3,19 +3,29 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-# Modelo que recibirá información desde Power Automate
+
+# Modelo que recibirá la información desde Power Automate
 class DatosEntrada(BaseModel):
-    texto: str = ""
+    niss: str = ""
+    inspeccion: str = ""
+    gfmf: str = ""
+    operacional: str = ""
+
 
 # Ruta de prueba
 @app.get("/")
 def inicio():
     return {"mensaje": "Hola desde PaytowinSpace"}
 
-# Ruta para recibir información desde Power Automate
+
+# Ruta para procesar la información
 @app.post("/procesar")
 def procesar(datos: DatosEntrada):
+
     return {
         "resultado": "OK",
-        "texto_recibido": datos.texto
+        "niss_recibido": datos.niss,
+        "inspeccion_recibida": datos.inspeccion,
+        "gfmf_recibido": datos.gfmf,
+        "operacional_recibido": datos.operacional
     }
