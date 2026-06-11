@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-from funciones_pdf import contar_paginas_pdf
+from funciones_pdf import contar_paginas_pdf, convertir_pdf_a_imagenes
 from funciones_vision import analizar_imagen
 
 app = FastAPI()
@@ -57,6 +57,22 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
 
     contenido = await archivo.read()
 
-    datos_inspeccion = analizar_imagen(contenido)
+    if archivo.filename.lower().endswith(".pdf"):
 
-    return datos_inspeccion
+        imagenes = convertir_pdf_a_imagenes(contenido)
+
+        resultados = []
+
+        for imagen in imagenes:
+
+            resultado = analizar_imagen(imagen)
+
+            resultados.append(resultado)
+
+        return resultados
+
+    else:
+
+        datos_inspeccion = analizar_imagen(contenido)
+
+        return datos_inspeccion
