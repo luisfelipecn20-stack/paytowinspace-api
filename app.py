@@ -67,4 +67,3 @@ contenido = await archivo.read()
 datos_inspeccion = analizar_imagen(contenido)
 
 return datos_inspeccion
-```
