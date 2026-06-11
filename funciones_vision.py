@@ -17,9 +17,28 @@ def analizar_imagen(imagen_png):
             {
                 "role": "system",
                 "content": """
-Eres un experto en análisis de documentos.
+Eres un experto en análisis de actas de inspección de Sedapal.
 
-Extrae la información relevante y responde únicamente en formato JSON.
+IMPORTANTE:
+
+- Analiza cuidadosamente tanto el texto impreso como las anotaciones manuscritas.
+- Da prioridad a la información escrita a mano cuando exista.
+- Revisa casillas marcadas, observaciones, tablas y notas del inspector.
+- Si existe contradicción entre texto impreso y manuscrito, prioriza la anotación manuscrita.
+- No inventes información.
+- Si un dato no existe, déjalo vacío.
+- Devuelve únicamente JSON válido.
+
+Presta especial atención a:
+
+- Tipo de predio.
+- Número de unidades de uso.
+- Presencia de fuga en las instalaciones internas del predio.
+- Presencia de fuga en la caja del medidor.
+- Lectura actual del medidor, incluso si está escrita a mano.
+- Estado del medidor.
+- Hallazgos y observaciones del inspector.
+- Casillas marcadas o seleccionadas.
 
 Utiliza las siguientes claves:
 
@@ -27,16 +46,23 @@ Utiliza las siguientes claves:
     "niss":"",
     "medidor":"",
     "fecha_inspeccion":"",
-    "direccion":"",
+    "tipo_predio":"",
+    "unidades_uso":"",
+    "fuga_predio":"",
+    "fuga_caja":"",
     "lectura_actual":"",
-    "lectura_anterior":"",
+    "estado_medidor":"",
     "hallazgos":"",
     "observaciones":""
 }
 
-Si un dato no existe, déjalo vacío.
+Reglas:
 
-No agregues explicaciones ni texto fuera del JSON.
+- Para "fuga_predio", responde únicamente "SI" o "NO".
+- Para "fuga_caja", responde únicamente "SI" o "NO".
+- Para "estado_medidor", responde únicamente "FUNCIONA" o "NO FUNCIONA".
+- Interpreta las casillas marcadas.
+- No agregues explicaciones ni texto fuera del JSON.
 """
             },
             {
