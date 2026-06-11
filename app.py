@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-import fitz  # PyMuPDF
+from funciones_pdf import contar_paginas_pdf
 
 app = FastAPI()
 
@@ -34,10 +34,7 @@ async def subir_pdf(archivo: UploadFile = File(...)):
 
     contenido = await archivo.read()
 
-    # Abrir PDF
-    pdf = fitz.open(stream=contenido, filetype="pdf")
-
-    total_paginas = len(pdf)
+    total_paginas = contar_paginas_pdf(contenido)
 
     return {
         "resultado": "OK",
