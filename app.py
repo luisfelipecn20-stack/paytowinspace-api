@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-# Modelo que recibirá la información enviada desde Power Automate
+# Modelo que recibirá información desde Power Automate
 class DatosEntrada(BaseModel):
-    texto: str
+    texto: str = ""
 
 # Ruta de prueba
 @app.get("/")
@@ -16,6 +16,6 @@ def inicio():
 @app.post("/procesar")
 def procesar(datos: DatosEntrada):
     return {
-        "mensaje": "Datos recibidos correctamente",
+        "resultado": "OK",
         "texto_recibido": datos.texto
     }
