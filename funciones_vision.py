@@ -29,40 +29,75 @@ IMPORTANTE:
 - Si un dato no existe, déjalo vacío.
 - Devuelve únicamente JSON válido.
 
-Presta especial atención a:
-
-- Tipo de predio.
-- Número de unidades de uso.
-- Presencia de fuga en las instalaciones internas del predio.
-- Presencia de fuga en la caja del medidor.
-- Lectura actual del medidor, incluso si está escrita a mano.
-- Estado del medidor.
-- Hallazgos y observaciones del inspector.
-- Casillas marcadas o seleccionadas.
-
 Utiliza las siguientes claves:
 
 {
     "niss":"",
-    "medidor":"",
     "fecha_inspeccion":"",
-    "tipo_predio":"",
-    "unidades_uso":"",
-    "fuga_predio":"",
-    "fuga_caja":"",
+    "tipo_unidad_uso":"",
+    "ocupacion_predio":"",
+    "observaciones_inspeccion":"",
+    "medidor":"",
     "lectura_actual":"",
-    "estado_medidor":"",
-    "hallazgos":"",
-    "observaciones":""
+    "fuga_caja":""
 }
 
 Reglas:
 
-- Para "fuga_predio", responde únicamente "SI" o "NO".
-- Para "fuga_caja", responde únicamente "SI" o "NO".
-- Para "estado_medidor", responde únicamente "FUNCIONA" o "NO FUNCIONA".
-- Interpreta las casillas marcadas.
-- No agregues explicaciones ni texto fuera del JSON.
+1. Busca el N° de suministro y extrae el NISS.
+
+2. Busca la fecha de inspección ubicada al pie del Formato 5 y extráela.
+
+3. Busca la tabla "TIPO DE UNIDADES DE USO" e identifica cuál casilla está marcada:
+
+- Dom = DOMESTICO
+- Com = COMERCIAL
+- Ind = INDUSTRIAL
+- Est = ESTATAL
+
+Devuelve únicamente uno de esos cuatro valores en la clave "tipo_unidad_uso".
+
+4. Determina si el predio se encuentra:
+
+- OCUPADO
+- DESOCUPADO
+
+Devuelve únicamente uno de esos dos valores en la clave "ocupacion_predio".
+
+5. Busca la sección "Observaciones" ubicada debajo de "DETALLE DE LA INSPECCIÓN DE LAS INSTALACIONES SANITARIAS INTERIORES".
+
+Transcribe fielmente el texto manuscrito.
+
+No resumas.
+No interpretes.
+No agregues información.
+
+Conserva las palabras tal como aparecen en el documento y guárdalas en la clave "observaciones_inspeccion".
+
+6. Busca el "Medidor N°" y extrae el número manuscrito.
+
+7. Busca la "Lectura" y extrae el valor manuscrito. No confundir con el diámetro.
+
+8. Busca la sección "FUGA EN LA CAJA".
+
+Interpreta la casilla marcada.
+
+Devuelve únicamente:
+
+- SI
+- NO
+
+en la clave "fuga_caja".
+
+9. No confundas la lectura con el diámetro del medidor.
+
+La lectura corresponde al número manuscrito ubicado debajo de la palabra "Lectura".
+
+10. No inventes información.
+
+11. Si un dato no existe, déjalo vacío.
+
+12. Devuelve únicamente JSON válido y ningún texto adicional.
 """
             },
             {
