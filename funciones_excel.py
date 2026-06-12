@@ -31,14 +31,8 @@ def obtener_datos_resolucion(
 
     df_bruto = pd.read_excel(excel_bruto)
 
-    df_filtrado = df_bruto[
-        df_bruto["niss"] == niss
-    ]
+    print(df_bruto.columns.tolist())
 
-    df_resolucion = df_filtrado.reindex(
-        columns=COLUMNAS_RESOLUCION
-    )
-
-    return df_resolucion.to_dict(
-        orient="records"
-    )
+    return {
+        "columnas": df_bruto.columns.tolist()
+    }
