@@ -1,5 +1,30 @@
 import pandas as pd
 
+COLUMNAS_RESOLUCION = [
+    "medidor",
+    "nis_rad",
+    "num_os",
+    "fec_vis",
+    "serv",
+    "cx_c_dt",
+    "lec",
+    "fuga_caj",
+    "uu_ocup",
+    "soc_ocup",
+    "dom_ocup",
+    "com_ocup",
+    "ind_ocup",
+    "est_ocup",
+    "uu_docup",
+    "soc_desc",
+    "dom_desc",
+    "com_desc",
+    "ind_desc",
+    "est_desc",
+    "observ",
+    "observm1"
+]
+
 def crear_excel_maestro(excel_bruto):
 
     df_bruto = pd.read_excel(excel_bruto)
