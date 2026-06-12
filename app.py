@@ -91,7 +91,8 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
 def generar_considerando_1_api(datos: DatosEntrada):
 
     datos_resolucion = obtener_datos_resolucion(
-        datos.inspeccion
+        datos.inspeccion,
+        datos.niss
     )
 
     texto_considerando = generar_considerando_1(
