@@ -41,3 +41,18 @@ def crear_excel_maestro(excel_bruto, excel_plantilla):
     df_maestro = df_maestro[encabezados_maestros]
     
     return df_maestro
+
+def guardar_excel_maestro(
+        excel_bruto,
+        excel_plantilla,
+        ruta_salida):
+
+    df_maestro = crear_excel_maestro(
+        excel_bruto,
+        excel_plantilla
+    )
+
+    df_maestro.to_excel(
+        ruta_salida,
+        index=False
+    )
