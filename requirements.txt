@@ -1,7 +1,10 @@
 fastapi
 uvicorn
-pydantic
 openai
+pandas
+openpyxl
+pdfplumber
 pymupdf
-pillow
 python-multipart
+pillow
+pdf2image
