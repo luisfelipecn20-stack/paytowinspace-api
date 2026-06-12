@@ -23,11 +23,17 @@ def guardar_excel_maestro(
     )
 
 
-def obtener_datos_resolucion(excel_bruto):
+def obtener_datos_resolucion(
+        excel_bruto,
+        niss):
 
     df_bruto = pd.read_excel(excel_bruto)
 
-    df_resolucion = df_bruto.reindex(
+    df_filtrado = df_bruto[
+        df_bruto["niss"] == niss
+    ]
+
+    df_resolucion = df_filtrado.reindex(
         columns=COLUMNAS_RESOLUCION
     )
 
