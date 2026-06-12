@@ -1,4 +1,3 @@
-```python
 import pandas as pd
 
 # Columnas que necesita la resolución
@@ -58,5 +57,4 @@ def obtener_datos_resolucion(excel_bruto):
     df_resolucion = df_bruto.reindex(columns=COLUMNAS_RESOLUCION)
 
     return df_resolucion.to_dict(orient="records")
-```
-
+    
