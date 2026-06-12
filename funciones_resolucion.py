@@ -1,4 +1,3 @@
-```python
 from openai import OpenAI
 import os
 
@@ -60,4 +59,3 @@ Devuelve únicamente el texto del Considerando Primero.
     )
 
     return respuesta.choices[0].message.content
-```
