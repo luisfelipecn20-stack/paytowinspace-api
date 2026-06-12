@@ -1,9 +1,13 @@
+```python
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from funciones_pdf import contar_paginas_pdf, convertir_pdf_a_imagenes
 from funciones_vision import analizar_imagen
+from funciones_excel import obtener_datos_resolucion
+from funciones_resolucion import generar_considerando_1
 
 app = FastAPI()
+
 
 class DatosEntrada(BaseModel):
     niss: str = ""
@@ -11,9 +15,11 @@ class DatosEntrada(BaseModel):
     gfmf: str = ""
     operacional: str = ""
 
+
 @app.get("/")
 def inicio():
     return {"mensaje": "Hola desde PaytowinSpace"}
+
 
 @app.post("/procesar")
 def procesar(datos: DatosEntrada):
@@ -25,6 +31,7 @@ def procesar(datos: DatosEntrada):
         "gfmf_recibido": datos.gfmf,
         "operacional_recibido": datos.operacional
     }
+
 
 @app.post("/subir_pdf")
 async def subir_pdf(archivo: UploadFile = File(...)):
@@ -39,6 +46,7 @@ async def subir_pdf(archivo: UploadFile = File(...)):
         "paginas": total_paginas
     }
 
+
 @app.post("/subir_imagen")
 async def subir_imagen(archivo: UploadFile = File(...)):
 
@@ -51,6 +59,7 @@ async def subir_imagen(archivo: UploadFile = File(...)):
         "nombre_archivo": archivo.filename,
         "texto_extraido": texto_extraido
     }
+
 
 @app.post("/analizar_inspeccion")
 async def analizar_inspeccion(archivo: UploadFile = File(...)):
@@ -76,3 +85,20 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
         datos_inspeccion = analizar_imagen(contenido)
 
         return datos_inspeccion
+
+
+@app.post("/generar_considerando_1")
+def generar_considerando_1_api(datos: DatosEntrada):
+
+    datos_resolucion = obtener_datos_resolucion(
+        datos.inspeccion
+    )
+
+    texto_considerando = generar_considerando_1(
+        datos_resolucion
+    )
+
+    return {
+        "considerando_1": texto_considerando
+    }
+```
