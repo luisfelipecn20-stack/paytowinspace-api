@@ -1,3 +1,5 @@
+import pandas as pd
+
 def crear_excel_maestro(excel_bruto):
 
     df_bruto = pd.read_excel(excel_bruto)
