@@ -100,4 +100,3 @@ def generar_considerando_1_api(datos: DatosEntrada):
     return {
         "considerando_1": texto_considerando
     }
-```
