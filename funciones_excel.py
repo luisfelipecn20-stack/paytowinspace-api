@@ -38,4 +38,6 @@ def crear_excel_maestro(excel_bruto, excel_plantilla):
 
     df_maestro = df_bruto.rename(columns=equivalencias)
 
+    df_maestro = df_maestro[encabezados_maestros]
+    
     return df_maestro
