@@ -46,20 +46,28 @@ Reglas:
 
 1. Busca el N° de suministro y extrae el NISS.
 
-2. Busca la fecha de inspección ubicada junto a la palabra "FECHA" al pie del Formato 5 o Formato 6.
+2. La fecha de inspección se encuentra en la primera hoja del Formato 5.
 
-- Ignora fechas de reclamo, orden de servicio y encabezados.
-- Si el año aparece con dos dígitos, conviértelo a cuatro dígitos.
-- No inventes fechas.
+Busca la fecha impresa ubicada junto a "Fec.Res.".
 
-3. Busca la tabla "TIPO DE UNIDADES DE USO" e identifica cuál casilla está marcada:
+No utilices la fecha manuscrita ubicada al pie del documento.
+
+Devuelve la fecha en formato AAAA-MM-DD.
+
+No inventes fechas.
+
+3. Ubica el cuadro situado a la derecha de "TIPO DE UNIDADES DE USO" y "N° de conexiones asociadas".
+
+Identifica la casilla marcada:
 
 - Dom = DOMESTICO
 - Com = COMERCIAL
 - Ind = INDUSTRIAL
 - Est = ESTATAL
 
-Devuelve únicamente uno de esos cuatro valores en la clave "tipo_unidad_uso".
+Devuelve únicamente uno de esos cuatro valores.
+
+No utilices información de las observaciones para determinar el tipo de unidad.
 
 4. Determina si el predio se encuentra:
 
@@ -68,30 +76,46 @@ Devuelve únicamente uno de esos cuatro valores en la clave "tipo_unidad_uso".
 
 Devuelve únicamente uno de esos dos valores en la clave "ocupacion_predio".
 
-5. Busca la sección "Observaciones" ubicada debajo de "DETALLE DE LA INSPECCIÓN DE LAS INSTALACIONES SANITARIAS INTERIORES".
+5. Busca las observaciones manuscritas ubicadas debajo de "DETALLE DE LA INSPECCIÓN DE LAS INSTALACIONES SANITARIAS INTERIORES".
 
-- Transcribe las observaciones de la forma más fiel posible.
-- La fidelidad es más importante que la gramática.
-- Si una palabra es ilegible, utiliza [ilegible].
-- No inventes información.
-- No es necesario interpretar si el predio es unifamiliar, multifamiliar o mixto.
-- La información más relevante es la relacionada con fugas interiores, anomalías y estado del medidor.
+No es necesario comprender completamente toda la escritura.
 
-Conserva las palabras tal como aparecen en el documento y guárdalas en la clave "observaciones_inspeccion".
+La prioridad es identificar si existe evidencia de fuga interior.
 
-6. Busca el campo "Medidor N°".
+Busca palabras como:
 
-- El medidor puede contener letras y números.
-- Copia exactamente los caracteres visibles.
-- Nunca agregues dígitos.
-- Nunca completes caracteres faltantes.
-- No confundas el medidor con la lectura ni con el diámetro.
+- fuga
+- filtración
+- pérdida
+- goteo
 
-7. Busca el campo "Lectura".
+Si alguna palabra es ilegible, utiliza [ilegible].
 
-- Devuelve únicamente el valor numérico.
-- No confundas la lectura con el diámetro.
-- La lectura corresponde al número situado debajo de la palabra "Lectura".
+No inventes información.
+
+Guarda las observaciones encontradas en la clave "observaciones_inspeccion".
+
+6. El número del medidor se encuentra en la segunda hoja.
+
+Busca el cuadro "Medidor N°" ubicado en la parte superior.
+
+El valor puede contener letras y números.
+
+Nunca utilices la lectura ni el diámetro como número de medidor.
+
+No utilices el medidor impreso del bloque "Datos Registrados" de la primera hoja.
+
+Copia exactamente los caracteres visibles.
+
+7. La lectura actual se encuentra en la segunda hoja.
+
+Busca el número manuscrito situado encima del cuadro "Lectura".
+
+No utilices "Ult.Lect." del bloque "Datos Registrados" de la primera hoja.
+
+No confundas la lectura con el diámetro.
+
+Devuelve únicamente el valor numérico.
 
 8. Busca la sección "FUGA EN LA CAJA".
 
@@ -104,15 +128,23 @@ Devuelve únicamente:
 
 en la clave "fuga_caja".
 
-9. No confundas la lectura con el diámetro del medidor.
+9. No inventes información.
 
-La lectura corresponde al número manuscrito ubicado debajo de la palabra "Lectura".
+10. Si un dato no existe, déjalo vacío.
 
-10. No inventes información.
+11. La sección "Datos Registrados" de la primera hoja es únicamente referencial.
 
-11. Si un dato no existe, déjalo vacío.
+No utilices esa sección para determinar:
 
-11.5 Si existen varias fechas, varios números o varias anotaciones, utiliza únicamente la información correspondiente al campo solicitado.
+- medidor;
+- lectura actual;
+- fuga en caja.
+
+Da prioridad a la información observada por el inspector en la segunda hoja.
+
+Ignora el diámetro y la última lectura del bloque "Datos Registrados".
+
+Todo lo que aparece desde "CIERRES Y REAPERTURAS / INSPECCIÓN SERVICIOS CERRADOS" hacia abajo en la segunda hoja puede ignorarse.
 
 Nunca infieras ni completes información faltante.
 
