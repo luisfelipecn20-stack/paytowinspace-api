@@ -32,9 +32,13 @@ IMPORTANTE:
 Utiliza las siguientes claves:
 
 {
-    "niss":"",
+"niss":"",
     "fecha_inspeccion":"",
     "tipo_unidad_uso":"",
+    "unidades_domesticas":"",
+    "unidades_comerciales":"",
+    "unidades_industriales":"",
+    "unidades_estatales":"",
     "ocupacion_predio":"",
     "observaciones_inspeccion":"",
     "medidor":"",
@@ -56,18 +60,24 @@ Devuelve la fecha en formato AAAA-MM-DD.
 
 No inventes fechas.
 
-3. Ubica el cuadro situado a la derecha de "TIPO DE UNIDADES DE USO" y "N° de conexiones asociadas".
+3. Ubica el cuadro situado a la derecha de "TIPO DE UNIDADES DE USO" y "N° de conexiones asociadas" en la primera hoja.
 
-Identifica la casilla marcada:
+Identifica cuántas unidades existen de cada tipo.
 
-- Dom = DOMESTICO
-- Com = COMERCIAL
-- Ind = INDUSTRIAL
-- Est = ESTATAL
+Extrae por separado:
 
-Devuelve únicamente uno de esos cuatro valores.
+- unidades_domesticas
+- unidades_comerciales
+- unidades_industriales
+- unidades_estatales
 
-No utilices información de las observaciones para determinar el tipo de unidad.
+Si una categoría no existe, devuelve 0.
+
+Identifica también cuál es el tipo predominante y devuélvelo en la clave "tipo_unidad_uso".
+
+No utilices las observaciones para determinar el tipo de unidad.
+
+No infieras información que no sea visible.
 
 4. Determina si el predio se encuentra:
 
@@ -78,20 +88,17 @@ Devuelve únicamente uno de esos dos valores en la clave "ocupacion_predio".
 
 5. Busca las observaciones manuscritas ubicadas debajo de "DETALLE DE LA INSPECCIÓN DE LAS INSTALACIONES SANITARIAS INTERIORES".
 
+No inventes palabras.
+
+No asumas que existe una fuga.
+
 No es necesario comprender completamente toda la escritura.
 
-La prioridad es identificar si existe evidencia de fuga interior.
+Solo registra información si las palabras son claramente visibles.
 
-Busca palabras como:
+Si no es posible determinar con certeza el contenido, deja la observación vacía.
 
-- fuga
-- filtración
-- pérdida
-- goteo
-
-Si alguna palabra es ilegible, utiliza [ilegible].
-
-No inventes información.
+La incertidumbre es preferible a inventar información.
 
 Guarda las observaciones encontradas en la clave "observaciones_inspeccion".
 
