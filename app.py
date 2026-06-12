@@ -88,17 +88,16 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
 
 
 @app.post("/generar_considerando_1")
-def generar_considerando_1_api(datos: DatosEntrada):
+async def generar_considerando_1_api(
+    archivo: UploadFile = File(...),
+    niss: str = ""
+):
 
     datos_resolucion = obtener_datos_resolucion(
-        datos.inspeccion,
-        datos.niss
-    )
-
-    texto_considerando = generar_considerando_1(
-        datos_resolucion
+        archivo.file,
+        niss
     )
 
     return {
-        "considerando_1": texto_considerando
+        "datos_resolucion": datos_resolucion
     }
