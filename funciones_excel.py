@@ -32,8 +32,6 @@ def crear_excel_maestro(excel_bruto):
 
     df_bruto = pd.read_excel(excel_bruto)
 
-    # Conserva únicamente las columnas necesarias
-    # y en el orden definido
     df_maestro = df_bruto.reindex(columns=COLUMNAS_RESOLUCION)
 
     return df_maestro
@@ -51,5 +49,14 @@ def guardar_excel_maestro(
         ruta_salida,
         index=False
     )
+
+
+def obtener_datos_resolucion(excel_bruto):
+
+    df_bruto = pd.read_excel(excel_bruto)
+
+    df_resolucion = df_bruto.reindex(columns=COLUMNAS_RESOLUCION)
+
+    return df_resolucion.to_dict(orient="records")
 ```
 
