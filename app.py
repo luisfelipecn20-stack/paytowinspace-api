@@ -1,3 +1,4 @@
+import pandas as pd
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from funciones_pdf import contar_paginas_pdf, convertir_pdf_a_imagenes
