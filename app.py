@@ -13,10 +13,13 @@ app = FastAPI()
 
 class DatosEntrada(BaseModel):
     niss: str = ""
+    re: str = ""
     inspeccion: str = ""
     gfmf: str = ""
     operacional: str = ""
     excel_sin_depurar: str = ""
+    numero_documento: str = ""
+    pdfs: list[str] = []
 
 
 @app.get("/")
@@ -44,6 +47,18 @@ def procesar(datos: DatosEntrada):
         "resultado": "OK",
         "niss_recibido": datos.niss,
         "datos_resolucion": datos_resolucion
+    }
+
+
+@app.post("/resolver")
+def resolver(datos: DatosEntrada):
+
+    return {
+        "resultado": "OK",
+        "niss": datos.niss,
+        "re": datos.re,
+        "cantidad_pdfs": len(datos.pdfs),
+        "pdfs": datos.pdfs
     }
 
 
