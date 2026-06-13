@@ -24,6 +24,15 @@ def crear_expediente_maestro():
         "direccion_procesal": "",
         "correo_autorizado": False,
 
+        # FORMATO 2
+        "direccion_formato_2": "",
+        "correo_formato_2": "",
+
+        # FORMATO 4
+        "existe_formato_4": False,
+        "direccion_formato_4": "",
+        "correo_formato_4": "",
+
         # RECLAMO
         "codigo_reclamo": "",
         "medio_presentacion": "",
@@ -49,8 +58,15 @@ def crear_expediente_maestro():
 
         # AUDIENCIA
         "fecha_audiencia": "",
+        "hubo_audiencia": False,
         "asistio_audiencia": True,
         "hubo_acuerdo": False,
+
+        # REGLAS DE REDACCIÓN
+        "tipo_predio": "",
+        "texto_mes": "",
+        "texto_usuario": "",
+        "texto_notificacion": "",
 
         # RESULTADO
         "resultado": "INFUNDADO"
