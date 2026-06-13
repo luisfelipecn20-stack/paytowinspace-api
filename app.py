@@ -14,7 +14,7 @@ class DatosEntrada(BaseModel):
     inspeccion: str = ""
     gfmf: str = ""
     operacional: str = ""
-    excel_sin_depurar: str = ""
+    excel_url: str = ""
 
 
 @app.get("/")
