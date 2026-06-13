@@ -58,43 +58,21 @@ def obtener_datos_resolucion(
 
     inicio_total = time.time()
 
-    inicio = time.time()
-
     df_bruto = pd.read_excel(excel_bruto)
-
-    print(
-        "Tiempo lectura Excel:",
-        round(time.time() - inicio, 2),
-        "segundos"
-    )
-
-    inicio = time.time()
 
     df_filtrado = df_bruto[
         df_bruto["nis_rad"] == int(niss)
     ]
 
-    print(
-        "Tiempo búsqueda NISS:",
-        round(time.time() - inicio, 2),
-        "segundos"
-    )
+    if df_filtrado.empty:
 
-    inicio = time.time()
+        return {}
 
-    df_resolucion = df_filtrado.reindex(
-        columns=COLUMNAS_RESOLUCION
-    )
+    fila = df_filtrado.iloc[0]
 
-    resultado = df_resolucion.to_dict(
-        orient="records"
-    )
-
-    print(
-        "Tiempo conversión JSON:",
-        round(time.time() - inicio, 2),
-        "segundos"
-    )
+    resultado = fila.reindex(
+        COLUMNAS_RESOLUCION
+    ).to_dict()
 
     print(
         "Tiempo total:",
