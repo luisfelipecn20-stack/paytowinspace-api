@@ -60,6 +60,68 @@ def crear_expediente_maestro():
     return expediente
 
 
+def determinar_tipo_predio(
+        unidades_domesticas,
+        unidades_comerciales,
+        unidades_industriales,
+        unidades_estatales):
+
+    total_unidades = (
+        unidades_domesticas
+        + unidades_comerciales
+        + unidades_industriales
+        + unidades_estatales
+    )
+
+    if (
+        unidades_domesticas == 1
+        and unidades_comerciales == 0
+        and unidades_industriales == 0
+        and unidades_estatales == 0
+    ):
+        return "UNIFAMILIAR"
+
+    if (
+        unidades_domesticas > 0
+        and (
+            unidades_comerciales > 0
+            or unidades_industriales > 0
+            or unidades_estatales > 0
+        )
+    ):
+        return "MIXTO"
+
+    if total_unidades > 1:
+        return "MULTIFAMILIAR"
+
+    return ""
+
+
+def determinar_texto_mes(
+        cantidad_meses):
+
+    if cantidad_meses == 1:
+        return "mes cuestionado"
+
+    return "meses cuestionados"
+
+
+def determinar_texto_audiencia(
+        hubo_acuerdo):
+
+    if hubo_acuerdo:
+        return (
+            "habiéndose arribado a una fórmula de solución "
+            "al reclamo por acuerdo entre las partes."
+        )
+
+    return (
+        "no habiéndose llegado a ninguna fórmula de solución "
+        "al reclamo, por falta de consenso entre las partes, "
+        "continuando con el proceso de reclamo en la vía administrativa."
+    )
+
+
 def generar_considerando_1(datos_inspeccion):
 
     respuesta = cliente.chat.completions.create(
