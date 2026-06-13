@@ -14,6 +14,7 @@ class DatosEntrada(BaseModel):
     inspeccion: str = ""
     gfmf: str = ""
     operacional: str = ""
+    excel_sin_depurar: str = ""
 
 
 @app.get("/")
@@ -29,7 +30,8 @@ def procesar(datos: DatosEntrada):
         "niss_recibido": datos.niss,
         "inspeccion_recibida": datos.inspeccion,
         "gfmf_recibido": datos.gfmf,
-        "operacional_recibido": datos.operacional
+        "operacional_recibido": datos.operacional,
+        "excel_sin_depurar_recibido": len(datos.excel_sin_depurar)
     }
 
 
