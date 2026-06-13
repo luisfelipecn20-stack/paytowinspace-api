@@ -25,13 +25,30 @@ def inicio():
 @app.post("/procesar")
 def procesar(datos: DatosEntrada):
 
+    excel_bytes = base64.b64decode(
+        datos.excel_sin_depurar
+    )
+
+    excel_stream = BytesIO(
+        excel_bytes
+    )
+
+    df_bruto = pd.read_excel(
+        excel_stream
+    )
+
+    df_filtrado = df_bruto[
+        df_bruto["nis_rad"].astype(str)
+        == str(datos.niss)
+    ]
+
     return {
         "resultado": "OK",
         "niss_recibido": datos.niss,
-        "inspeccion_recibida": datos.inspeccion,
-        "gfmf_recibido": datos.gfmf,
-        "operacional_recibido": datos.operacional,
-        "excel_sin_depurar_recibido": len(datos.excel_sin_depurar)
+        "filas_encontradas": len(df_filtrado),
+        "datos_encontrados": df_filtrado.to_dict(
+            orient="records"
+        )
     }
 
 
