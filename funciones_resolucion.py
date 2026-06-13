@@ -6,6 +6,60 @@ cliente = OpenAI(
 )
 
 
+def crear_expediente_maestro():
+
+    expediente = {
+
+        # RESOLUCIÓN
+        "numero_resolucion": "",
+        "fecha_resolucion": "",
+
+        # USUARIO
+        "suministro": "",
+        "reclamante": "",
+        "sexo_reclamante": "",
+
+        # DIRECCIONES
+        "direccion_suministro": "",
+        "direccion_procesal": "",
+        "correo_autorizado": False,
+
+        # RECLAMO
+        "codigo_reclamo": "",
+        "medio_presentacion": "",
+        "tipo_reclamo": "",
+        "fecha_reclamo": "",
+        "meses_reclamados": [],
+
+        # INSPECCIÓN
+        "fecha_inspeccion": "",
+        "medidor": "",
+        "lectura_actual": "",
+        "fuga_caja": "",
+        "ocupacion_predio": "",
+        "unidades_domesticas": 0,
+        "unidades_comerciales": 0,
+        "unidades_industriales": 0,
+        "unidades_estatales": 0,
+        "observaciones_inspeccion": "",
+
+        # FACTURACIÓN
+        "volumen_real": "",
+        "lecturas_historicas": [],
+
+        # AUDIENCIA
+        "fecha_audiencia": "",
+        "asistio_audiencia": True,
+        "hubo_acuerdo": False,
+
+        # RESULTADO
+        "resultado": "INFUNDADO"
+
+    }
+
+    return expediente
+
+
 def generar_considerando_1(datos_inspeccion):
 
     respuesta = cliente.chat.completions.create(
