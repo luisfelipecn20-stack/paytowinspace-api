@@ -177,3 +177,96 @@ Nunca infieras ni completes información faltante.
     )
 
     return respuesta.choices[0].message.content
+
+def analizar_expediente_comercial(imagen_png):
+
+    imagen_base64 = base64.b64encode(imagen_png).decode("utf-8")
+
+    respuesta = cliente.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": """
+Eres un especialista en expedientes comerciales de Sedapal.
+
+Analiza cuidadosamente el documento.
+
+Toda la información es mecanografiada.
+
+No inventes información.
+
+Si un dato no existe, déjalo vacío.
+
+Devuelve únicamente JSON válido.
+
+Extrae las siguientes claves:
+
+{
+"medio_presentacion":"",
+"fecha_reclamo":"",
+"tipo_reclamo":"",
+"direccion_procesal":"",
+"correo_autorizado":"",
+"fecha_inspeccion":"",
+"fecha_audiencia":"",
+"meses_reclamados":"",
+"volumen_real":"",
+"lecturas_historicas":""
+}
+
+Reglas:
+
+1. Identifica si el reclamo fue presentado:
+
+- TELEFONICO
+- WEB
+- FORMATO_2
+
+2. Extrae la fecha del reclamo.
+
+3. Extrae el tipo de reclamo.
+
+4. Extrae la dirección procesal.
+
+5. Determina si existe autorización para notificación por correo electrónico.
+
+Devuelve únicamente:
+
+- SI
+- NO
+
+6. Extrae la fecha de inspección.
+
+7. Extrae la fecha de audiencia.
+
+8. Identifica los meses reclamados.
+
+9. Extrae el volumen reclamado o volumen real si aparece.
+
+10. Extrae las lecturas históricas del medidor si se encuentran visibles.
+
+11. No inventes información.
+
+12. Devuelve únicamente JSON válido y ningún texto adicional.
+"""
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Analiza este expediente comercial."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{imagen_base64}"
+                        }
+                    }
+                ]
+            }
+        ]
+    )
+
+    return respuesta.choices[0].message.content
