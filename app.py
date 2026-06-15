@@ -127,6 +127,16 @@ async def generar_considerando_1_api(
         niss
     )
 
+    if not datos_resolucion:
+        return {
+            "error": "No se encontró el NISS en el Excel."
+        }
+
+    considerando_1 = generar_considerando_1(
+        datos_resolucion
+    )
+
     return {
-        "datos_resolucion": datos_resolucion
+        "datos_resolucion": datos_resolucion,
+        "considerando_1": considerando_1
     }
