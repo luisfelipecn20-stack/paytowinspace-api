@@ -122,8 +122,14 @@ async def generar_considerando_1_api(
     niss: str = ""
 ):
 
+    contenido_excel = await archivo.read()
+
+    excel_stream = BytesIO(
+        contenido_excel
+    )
+
     datos_resolucion = obtener_datos_resolucion(
-        archivo.file,
+        excel_stream,
         niss
     )
 
