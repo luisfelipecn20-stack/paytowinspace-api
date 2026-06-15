@@ -53,10 +53,21 @@ def guardar_excel_maestro(
 
 
 def obtener_datos_resolucion(
-        df_bruto,
+        excel_bruto,
         niss):
 
-    # ---------- FILTRO ----------
+    inicio_total = time.time()
+
+    inicio_lectura = time.time()
+
+    df_bruto = pd.read_excel(excel_bruto)
+
+    print(
+        "Tiempo lectura Excel:",
+        round(time.time() - inicio_lectura, 2),
+        "segundos"
+    )
+
     inicio_filtro = time.time()
 
     df_filtrado = df_bruto[
@@ -72,27 +83,15 @@ def obtener_datos_resolucion(
     if df_filtrado.empty:
         return {}
 
-    # ---------- OBTENER FILA ----------
-    inicio_fila = time.time()
-
     fila = df_filtrado.iloc[0]
-
-    print(
-        "Tiempo iloc:",
-        round(time.time() - inicio_fila, 2),
-        "segundos"
-    )
-
-    # ---------- DICCIONARIO ----------
-    inicio_dict = time.time()
 
     resultado = fila.reindex(
         COLUMNAS_RESOLUCION
     ).to_dict()
 
     print(
-        "Tiempo to_dict:",
-        round(time.time() - inicio_dict, 2),
+        "Tiempo total:",
+        round(time.time() - inicio_total, 2),
         "segundos"
     )
 
