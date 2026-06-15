@@ -138,7 +138,12 @@ def determinar_texto_audiencia(
     )
 
 
+import time
+
+
 def generar_considerando_1(datos_inspeccion):
+
+    inicio_gpt = time.time()
 
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
@@ -153,6 +158,12 @@ Tu tarea es redactar únicamente el Considerando Primero.
 Utiliza exclusivamente la información proporcionada.
 
 No inventes información.
+
+Prohibido inferir hechos no expresamente indicados.
+
+Prohibido completar información faltante.
+
+Prohibido asumir distribución de pisos o viviendas.
 
 Redacta en un solo párrafo y con lenguaje administrativo.
 
@@ -188,6 +199,12 @@ Devuelve únicamente el texto del Considerando Primero.
                 "content": str(datos_inspeccion)
             }
         ]
+    )
+
+    print(
+        "Tiempo OpenAI:",
+        round(time.time() - inicio_gpt, 2),
+        "segundos"
     )
 
     return respuesta.choices[0].message.content
