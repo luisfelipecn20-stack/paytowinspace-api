@@ -10,6 +10,13 @@ from funciones_resolucion import generar_considerando_1
 
 app = FastAPI()
 
+print("Cargando Excel...")
+
+DF_RECLAMOS = pd.read_excel(
+    "excel_sin_depurar.xlsx"
+)
+
+print("Excel cargado correctamente")
 
 class DatosEntrada(BaseModel):
     niss: str = ""
