@@ -75,7 +75,7 @@ def obtener_datos_resolucion(
     ).to_dict()
 
     print(
-        "Tiempo total:",
+        "Tiempo Excel:",
         round(time.time() - inicio_total, 2),
         "segundos"
     )
