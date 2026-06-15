@@ -58,6 +58,67 @@ def obtener_datos_resolucion(
 
     inicio_total = time.time()
 
+    # ---------- LECTURA DEL EXCEL ----------
+    inicio_lectura = time.time()
+
+    df_bruto = pd.read_excel(excel_bruto)
+
+    print(
+        "Tiempo lectura Excel:",
+        round(time.time() - inicio_lectura, 2),
+        "segundos"
+    )
+
+    # ---------- FILTRO ----------
+    inicio_filtro = time.time()
+
+    df_filtrado = df_bruto[
+        df_bruto["nis_rad"] == int(niss)
+    ]
+
+    print(
+        "Tiempo filtro:",
+        round(time.time() - inicio_filtro, 2),
+        "segundos"
+    )
+
+    if df_filtrado.empty:
+        return {}
+
+    # ---------- OBTENER FILA ----------
+    inicio_fila = time.time()
+
+    fila = df_filtrado.iloc[0]
+
+    print(
+        "Tiempo iloc:",
+        round(time.time() - inicio_fila, 2),
+        "segundos"
+    )
+
+    # ---------- DICCIONARIO ----------
+    inicio_dict = time.time()
+
+    resultado = fila.reindex(
+        COLUMNAS_RESOLUCION
+    ).to_dict()
+
+    print(
+        "Tiempo to_dict:",
+        round(time.time() - inicio_dict, 2),
+        "segundos"
+    )
+
+    print(
+        "Tiempo total:",
+        round(time.time() - inicio_total, 2),
+        "segundos"
+    )
+
+    return resultado
+
+    inicio_total = time.time()
+
     inicio_lectura = time.time()
 
     df_bruto = pd.read_excel(excel_bruto)
