@@ -233,7 +233,12 @@ def generar_considerando_1(datos_inspeccion):
             datos_inspeccion
         )
     )
-
+    
+    # Construir inicio obligatorio del considerando
+    datos_inspeccion["inicio_considerando"] = (
+    f"Con fecha {datos_inspeccion['fec_vis']}, "
+    f"{datos_inspeccion['texto_inspeccion']},"
+)
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -272,11 +277,19 @@ No menciones aspectos que correspondan a otros considerandos.
 
 Devuelve únicamente el texto del Considerando Primero.
 
-La redacción debe iniciar obligatoriamente con:
+La redacción debe iniciar obligatoriamente con el contenido del campo "inicio_considerando".
 
-"Con fecha ... se llevó a cabo la inspección ..."
+Debes reproducirlo exactamente como fue recibido.
 
-La fecha debe expresarse obligatoriamente en formato DD/MM/AAAA.
+No debes modificarlo.
+
+No debes resumirlo.
+
+No debes omitir ninguna palabra.
+
+No debes cambiar la redacción recibida.
+
+La fecha debe conservarse exactamente como fue recibida y expresarse únicamente en formato DD/MM/AAAA.
 
 No debes utilizar expresiones como:
 
@@ -284,17 +297,43 @@ No debes utilizar expresiones como:
 
 "29 de mayo de 2026"
 
-Debes conservar exactamente la fecha recibida y expresarla únicamente en formato numérico.
+Bajo ninguna circunstancia puedes reemplazar expresiones equivalentes.
 
-Debes utilizar literalmente el contenido del campo "texto_inspeccion".
+La frase inicial del considerando es obligatoria y debe conservarse íntegramente.
 
-No debes modificarlo.
+Si el contenido del campo "inicio_considerando" incluye:
 
-No debes resumirlo.
+"no habiéndose efectuado la inspección interna por oposición del usuario"
 
-No debes omitir ninguna parte.
+debes conservar dicha expresión completa.
 
-No debes cambiar la redacción recibida.
+Si incluye:
+
+"no habiéndose efectuado la inspección interna por ausencia del usuario"
+
+debes conservar dicha expresión completa.
+
+Si incluye:
+
+"se llevó a cabo la inspección interna y externa al predio"
+
+debes conservar dicha expresión completa.
+
+Si incluye:
+
+"se llevó a cabo la inspección externa al predio"
+
+debes conservar dicha expresión completa.
+
+Bajo ninguna circunstancia debes sustituir una inspección externa por una inspección interna y externa.
+
+No debes inferir que existió inspección interna si ello no aparece expresamente en el campo "inicio_considerando".
+
+Si incluye:
+
+"se llevó a cabo la inspección interna y externa de manera parcial al predio"
+
+debes conservar dicha expresión completa.
 
 Luego debes señalar que:
 
@@ -307,6 +346,18 @@ Si existe fuga en caja debes indicar:
 Si no existe fuga en caja debes indicar:
 
 "y sin fuga de agua"
+
+Si el valor recibido para fuga_caj es:
+
+"S/F/CAJA"
+
+debes indicar obligatoriamente:
+
+"y sin fuga de agua"
+
+No debes omitir dicha expresión.
+
+No debes inferir la existencia de fuga de agua en la caja cuando el valor recibido sea "S/F/CAJA".
 
 Debes indicar:
 
@@ -342,11 +393,39 @@ No inventes cantidades.
 
 Si no existen datos suficientes, omite la descripción de las unidades.
 
+No debes crear unidades domésticas, comerciales, industriales o estatales que no hayan sido proporcionadas.
+
+No debes asumir la existencia de unidades domésticas habitadas.
+
+No debes convertir un predio comercial en un predio mixto.
+
+Si únicamente existen unidades comerciales, debes describir únicamente las unidades comerciales.
+
+Si únicamente existe una unidad comercial ocupada, debes indicar:
+
+"la conexión domiciliaria abastece a un predio comercial en actividad"
+
+No debes agregar unidades domésticas ni predios mixtos salvo que ello aparezca expresamente en la información recibida.
+
+Si no existe información suficiente para describir las unidades de uso, debes omitir dicha descripción.
+
 Respecto a las instalaciones internas, no debes describir pruebas hidráulicas ni copiar literalmente las observaciones.
 
 No debes omitir dicha conclusión bajo ninguna circunstancia.
 
 Si el campo "estado_fuga" está vacío, no debes hacer referencia a las instalaciones internas.
+
+Si el valor recibido para "fuga_caj" es:
+
+"S/F/CAJA"
+
+debes indicar obligatoriamente:
+
+"y sin fuga de agua"
+
+No debes omitir dicha expresión.
+
+No debes inferir la existencia de fuga de agua en la caja cuando el valor recibido sea "S/F/CAJA".
 
 No utilices expresiones como:
 
