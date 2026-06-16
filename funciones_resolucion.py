@@ -139,12 +139,28 @@ def determinar_texto_audiencia(
 
 
 import time
-
+from datetime import datetime
 
 def generar_considerando_1(datos_inspeccion):
 
     inicio_gpt = time.time()
 
+    # Normalizar lectura
+    lectura = datos_inspeccion.get("lec")
+
+    if isinstance(lectura, float) and lectura.is_integer():
+        datos_inspeccion["lec"] = int(lectura)
+
+    # Normalizar fecha
+    fecha = datos_inspeccion.get("fec_vis")
+
+    if fecha:
+        datos_inspeccion["fec_vis"] = (
+            datetime.fromisoformat(
+                fecha.replace("Z", "")
+            ).strftime("%d/%m/%Y")
+        )
+    
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -186,6 +202,16 @@ Devuelve únicamente el texto del Considerando Primero.
 La redacción debe iniciar obligatoriamente con:
 
 "Con fecha ... se llevó a cabo la inspección ..."
+
+La fecha debe expresarse obligatoriamente en formato DD/MM/AAAA.
+
+No debes utilizar expresiones como:
+
+"29 de junio de 2026"
+
+"29 de mayo de 2026"
+
+Debes conservar exactamente la fecha recibida y expresarla únicamente en formato numérico.
 
 Si se realizó inspección interna y externa, debes indicar:
 
