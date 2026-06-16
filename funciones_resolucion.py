@@ -1,5 +1,7 @@
 from openai import OpenAI
 import os
+import time
+from datetime import datetime
 
 cliente = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
@@ -113,8 +115,7 @@ def determinar_tipo_predio(
     return ""
 
 
-def determinar_texto_mes(
-        cantidad_meses):
+def determinar_texto_mes(cantidad_meses):
 
     if cantidad_meses == 1:
         return "mes cuestionado"
@@ -122,8 +123,7 @@ def determinar_texto_mes(
     return "meses cuestionados"
 
 
-def determinar_texto_audiencia(
-        hubo_acuerdo):
+def determinar_texto_audiencia(hubo_acuerdo):
 
     if hubo_acuerdo:
         return (
@@ -137,9 +137,45 @@ def determinar_texto_audiencia(
         "continuando con el proceso de reclamo en la vía administrativa."
     )
 
+def determinar_texto_inspeccion(datos_inspeccion):
 
-import time
-from datetime import datetime
+    observ = (
+        datos_inspeccion.get("observ", "")
+        + " "
+        + datos_inspeccion.get("observ1", "")
+    ).upper()
+
+    if (
+        "OPOSICION" in observ
+        or "OPOSICIÓN" in observ
+    ):
+
+        return (
+            "se llevó a cabo la inspección externa al predio, "
+            "no habiéndose efectuado la inspección interna por oposición del usuario"
+        )
+
+    elif (
+        "AUSENTE" in observ
+        or "AUSENCIA" in observ
+    ):
+
+        return (
+            "se llevó a cabo la inspección externa al predio, "
+            "no habiéndose efectuado la inspección interna por ausencia del usuario"
+        )
+
+    elif "PARCIAL" in observ:
+
+        return (
+            "se llevó a cabo la inspección interna y externa de manera parcial al predio"
+        )
+
+    else:
+
+        return (
+            "se llevó a cabo la inspección interna y externa al predio"
+        )
 
 def generar_considerando_1(datos_inspeccion):
 
@@ -148,7 +184,10 @@ def generar_considerando_1(datos_inspeccion):
     # Normalizar lectura
     lectura = datos_inspeccion.get("lec")
 
-    if isinstance(lectura, float) and lectura.is_integer():
+    if (
+        isinstance(lectura, float)
+        and lectura.is_integer()
+    ):
         datos_inspeccion["lec"] = int(lectura)
 
     # Normalizar fecha
@@ -157,23 +196,43 @@ def generar_considerando_1(datos_inspeccion):
     if fecha:
 
         if isinstance(fecha, str):
+
             fecha = datetime.fromisoformat(
                 fecha.replace("Z", "")
             )
 
-        datos_inspeccion["fec_vis"] = fecha.strftime("%d/%m/%Y")
+        datos_inspeccion["fec_vis"] = (
+            fecha.strftime("%d/%m/%Y")
+        )
 
     # Determinar estado de fuga
-    observacion = datos_inspeccion.get("observ", "").upper()
+    observacion = (
+        datos_inspeccion.get("observ", "")
+        + " "
+        + datos_inspeccion.get("observ1", "")
+    ).upper()
 
-    if "NO REGISTRA CONSUMO" in observacion:
+    if (
+        "NO REGISTRA CONSUMO" in observacion
+        or "SIN FUGA" in observacion
+    ):
+
         datos_inspeccion["estado_fuga"] = "SIN FUGA"
 
     elif "FUGA" in observacion:
+
         datos_inspeccion["estado_fuga"] = "CON FUGA"
 
     else:
+
         datos_inspeccion["estado_fuga"] = ""
+
+    # Determinar tipo de inspección
+    datos_inspeccion["texto_inspeccion"] = (
+        determinar_texto_inspeccion(
+            datos_inspeccion
+        )
+    )
 
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
@@ -227,13 +286,15 @@ No debes utilizar expresiones como:
 
 Debes conservar exactamente la fecha recibida y expresarla únicamente en formato numérico.
 
-Si se realizó inspección interna y externa, debes indicar:
+Debes utilizar literalmente el contenido del campo "texto_inspeccion".
 
-"se llevó a cabo la inspección interna y externa al predio"
+No debes modificarlo.
 
-Si solo se realizó inspección externa, debes indicar:
+No debes resumirlo.
 
-"se llevó a cabo la inspección externa al predio"
+No debes omitir ninguna parte.
+
+No debes cambiar la redacción recibida.
 
 Luego debes señalar que:
 
@@ -311,13 +372,6 @@ o
 
 según corresponda.
 
-Si la inspección interna no se realizó, debes indicar expresamente la causa consignada en la información recibida, por ejemplo:
-
-* "por ausencia del reclamante"
-* "por oposición del reclamante"
-* "por ausencia de la reclamante"
-* "por oposición de la reclamante"
-
 Debes incorporar las observaciones encontradas durante la inspección únicamente si aparecen expresamente en la información recibida.
 
 No reformules innecesariamente.
@@ -325,6 +379,7 @@ No reformules innecesariamente.
 La estructura y redacción deben ser similares a las resoluciones emitidas por el Equipo Comercial Callao.
 
 """
+
             },
             {
                 "role": "user",
@@ -332,20 +387,32 @@ La estructura y redacción deben ser similares a las resoluciones emitidas por e
             }
         ]
     )
+
     print(
         "Tiempo OpenAI:",
-         round(time.time() - inicio_gpt, 2),
+        round(time.time() - inicio_gpt, 2),
         "segundos"
     )
 
-    considerando = respuesta.choices[0].message.content
+    considerando = (
+        respuesta.choices[0]
+        .message
+        .content
+    )
+
+    considerando = considerando.replace(
+        "Considerando Primero:",
+        ""
+    ).strip()
 
     if datos_inspeccion.get("estado_fuga") == "SIN FUGA":
+
         considerando += (
             " Asimismo, se verificó que las instalaciones internas se encuentran sin fuga."
         )
 
     elif datos_inspeccion.get("estado_fuga") == "CON FUGA":
+
         considerando += (
             " Asimismo, se verificó que las instalaciones internas se encuentran con fuga."
         )
