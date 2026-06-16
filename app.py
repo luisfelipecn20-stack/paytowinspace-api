@@ -39,13 +39,13 @@ def procesar(datos: DatosEntrada):
     )
 
     datos_resolucion = obtener_datos_resolucion(
-        excel_stream,
-        datos.niss
+    excel_stream,
+    datos.re
     )
 
     return {
         "resultado": "OK",
-        "niss_recibido": datos.niss,
+        "re_recibido": datos.re,
         "datos_resolucion": datos_resolucion
     }
 
@@ -55,7 +55,6 @@ def resolver(datos: DatosEntrada):
 
     return {
         "resultado": "OK",
-        "niss": datos.niss,
         "re": datos.re,
         "cantidad_pdfs": len(datos.pdfs),
         "pdfs": datos.pdfs
@@ -119,7 +118,7 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
 @app.post("/generar_considerando_1")
 async def generar_considerando_1_api(
     archivo: UploadFile = File(...),
-    niss: str = ""
+    re: str = ""
 ):
 
     contenido_excel = await archivo.read()
@@ -129,13 +128,13 @@ async def generar_considerando_1_api(
     )
 
     datos_resolucion = obtener_datos_resolucion(
-        excel_stream,
-        niss
+    excel_stream,
+    re
     )
 
     if not datos_resolucion:
         return {
-            "error": "No se encontró el NISS en el Excel."
+            "error": "No se encontró el RE en el Excel."
         }
 
     considerando_1 = generar_considerando_1(
