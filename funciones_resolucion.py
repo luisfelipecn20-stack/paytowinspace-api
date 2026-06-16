@@ -283,15 +283,39 @@ Si no existen datos suficientes, omite la descripción de las unidades.
 
 Respecto a las instalaciones internas, no debes describir pruebas hidráulicas ni copiar literalmente las observaciones.
 
-Si las observaciones indican que no existe consumo al cerrar los puntos de agua o que los servicios sanitarios se encuentran en buen estado, debes resumir dicha situación indicando únicamente:
+Debes incorporar el estado de fuga consignado en el campo "estado_fuga".
+
+Si el campo "estado_fuga" contiene:
+
+"SIN FUGA"
+
+debes incorporar expresamente la frase:
 
 "sin fuga".
 
-Si las observaciones indican cualquier tipo de fuga en las instalaciones internas, debes indicar únicamente:
+Si el campo "estado_fuga" contiene:
+
+"CON FUGA"
+
+debes incorporar expresamente la frase:
 
 "con fuga".
 
-No debes precisar el lugar de la fuga.
+La conclusión sobre la existencia o inexistencia de fuga es obligatoria y no debe omitirse.
+
+No debes describir pruebas hidráulicas.
+
+No debes copiar literalmente las observaciones.
+
+No debes precisar el lugar específico de la fuga.
+
+La expresión "sin fuga" o "con fuga" debe aparecer en el Considerando Primero aun cuando las observaciones hayan sido resumidas.
+
+La frase "sin fuga" o "con fuga" debe incorporarse al final del párrafo correspondiente a la inspección interna.
+
+No debes omitir dicha conclusión bajo ninguna circunstancia.
+
+Si el campo "estado_fuga" está vacío, no debes hacer referencia a las instalaciones internas.
 
 No utilices expresiones como:
 
