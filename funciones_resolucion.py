@@ -175,20 +175,6 @@ def generar_considerando_1(datos_inspeccion):
     else:
         datos_inspeccion["estado_fuga"] = ""
 
-        # Texto de conclusión de fuga
-    if datos_inspeccion["estado_fuga"] == "SIN FUGA":
-        datos_inspeccion["texto_fuga"] = (
-            "encontrándose las instalaciones internas sin fuga."
-        )
-
-    elif datos_inspeccion["estado_fuga"] == "CON FUGA":
-        datos_inspeccion["texto_fuga"] = (
-            "encontrándose las instalaciones internas con fuga."
-        )
-
-    else:
-        datos_inspeccion["texto_fuga"] = ""
-    
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -297,15 +283,6 @@ Si no existen datos suficientes, omite la descripción de las unidades.
 
 Respecto a las instalaciones internas, no debes describir pruebas hidráulicas ni copiar literalmente las observaciones.
 
-Debes incorporar literalmente el texto consignado en el campo "texto_fuga".
-
-No debes modificarlo.
-
-No debes omitirlo.
-
-Si dicho campo está vacío, no debes hacer referencia a las instalaciones internas.
-La frase "sin fuga" o "con fuga" debe incorporarse al final del párrafo correspondiente a la inspección interna.
-
 No debes omitir dicha conclusión bajo ninguna circunstancia.
 
 Si el campo "estado_fuga" está vacío, no debes hacer referencia a las instalaciones internas.
@@ -356,10 +333,22 @@ La estructura y redacción deben ser similares a las resoluciones emitidas por e
         ]
     )
 
-    print(
+      print(
         "Tiempo OpenAI:",
         round(time.time() - inicio_gpt, 2),
         "segundos"
     )
 
-    return respuesta.choices[0].message.content
+    considerando = respuesta.choices[0].message.content
+
+    if datos_inspeccion["estado_fuga"] == "SIN FUGA":
+        considerando += (
+            " Asimismo, se verificó que las instalaciones internas se encuentran sin fuga."
+        )
+
+    elif datos_inspeccion["estado_fuga"] == "CON FUGA":
+        considerando += (
+            " Asimismo, se verificó que las instalaciones internas se encuentran con fuga."
+        )
+
+    return considerando
