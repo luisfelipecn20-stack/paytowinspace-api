@@ -160,6 +160,21 @@ def generar_considerando_1(datos_inspeccion):
                 fecha.replace("Z", "")
             ).strftime("%d/%m/%Y")
         )
+
+    # Determinar estado de fuga
+    observacion = datos_inspeccion.get("observ", "").upper()
+
+    if "NO REGISTRA CONSUMO" in observacion:
+        datos_inspeccion["estado_fuga"] = "SIN FUGA"
+
+    elif "FUGA" in observacion:
+        datos_inspeccion["estado_fuga"] = "CON FUGA"
+
+    else:
+        datos_inspeccion["estado_fuga"] = ""
+
+print("DATOS ENVIADOS A GPT:")
+print(datos_inspeccion)
     
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
