@@ -172,9 +172,6 @@ def generar_considerando_1(datos_inspeccion):
 
     else:
         datos_inspeccion["estado_fuga"] = ""
-
-print("DATOS ENVIADOS A GPT:")
-print(datos_inspeccion)
     
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
