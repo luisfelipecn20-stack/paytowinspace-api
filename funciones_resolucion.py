@@ -152,16 +152,16 @@ def generar_considerando_1(datos_inspeccion):
         datos_inspeccion["lec"] = int(lectura)
 
     # Normalizar fecha
-fecha = datos_inspeccion.get("fec_vis")
+    fecha = datos_inspeccion.get("fec_vis")
 
-if fecha:
+    if fecha:
 
-    if isinstance(fecha, str):
-        fecha = datetime.fromisoformat(
-            fecha.replace("Z", "")
-        )
+        if isinstance(fecha, str):
+            fecha = datetime.fromisoformat(
+                fecha.replace("Z", "")
+            )
 
-    datos_inspeccion["fec_vis"] = fecha.strftime("%d/%m/%Y")
+        datos_inspeccion["fec_vis"] = fecha.strftime("%d/%m/%Y")
 
     # Determinar estado de fuga
     observacion = datos_inspeccion.get("observ", "").upper()
