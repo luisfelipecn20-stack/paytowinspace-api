@@ -207,7 +207,15 @@ Si no existe fuga en caja debes indicar:
 
 "y sin fuga de agua"
 
-Debes mencionar el número del medidor y la lectura registrada al momento de la inspección.
+Debes indicar:
+
+"Que el medidor (número de medidor) registra al momento de la inspección la lectura de (lectura) m3."
+
+No utilices expresiones como:
+
+"habiéndose registrado un número de medidor"
+
+o similares.
 
 Cuando corresponda, utiliza las siguientes expresiones:
 
@@ -233,11 +241,41 @@ No inventes cantidades.
 
 Si no existen datos suficientes, omite la descripción de las unidades.
 
-Si se detectó fuga en las instalaciones internas, indícalo.
+Respecto a las instalaciones internas, no debes describir pruebas hidráulicas ni copiar literalmente las observaciones.
 
-Si no se detectó fuga en las instalaciones internas, utiliza:
+Si las observaciones indican que no existe consumo al cerrar los puntos de agua o que los servicios sanitarios se encuentran en buen estado, debes resumir dicha situación indicando únicamente:
+
+"sin fuga".
+
+Si las observaciones indican cualquier tipo de fuga en las instalaciones internas, debes indicar únicamente:
+
+"con fuga".
+
+No debes precisar el lugar de la fuga.
+
+No utilices expresiones como:
+
+"cerrando todos los puntos de agua"
+
+"el medidor no registra consumo"
 
 "no se detectó fuga de agua en las instalaciones internas"
+
+"fuga en inodoro"
+
+"fuga en válvula"
+
+"fuga en tanque"
+
+Debes resumir dichas situaciones únicamente como:
+
+"sin fuga"
+
+o
+
+"con fuga"
+
+según corresponda.
 
 Si la inspección interna no se realizó, debes indicar expresamente la causa consignada en la información recibida, por ejemplo:
 
