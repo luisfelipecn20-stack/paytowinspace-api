@@ -332,21 +332,20 @@ La estructura y redacción deben ser similares a las resoluciones emitidas por e
             }
         ]
     )
-
-      print(
+    print(
         "Tiempo OpenAI:",
-        round(time.time() - inicio_gpt, 2),
+         round(time.time() - inicio_gpt, 2),
         "segundos"
     )
 
     considerando = respuesta.choices[0].message.content
 
-    if datos_inspeccion["estado_fuga"] == "SIN FUGA":
+    if datos_inspeccion.get("estado_fuga") == "SIN FUGA":
         considerando += (
             " Asimismo, se verificó que las instalaciones internas se encuentran sin fuga."
         )
 
-    elif datos_inspeccion["estado_fuga"] == "CON FUGA":
+    elif datos_inspeccion.get("estado_fuga") == "CON FUGA":
         considerando += (
             " Asimismo, se verificó que las instalaciones internas se encuentran con fuga."
         )
