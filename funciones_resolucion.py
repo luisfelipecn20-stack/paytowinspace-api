@@ -174,6 +174,20 @@ def generar_considerando_1(datos_inspeccion):
 
     else:
         datos_inspeccion["estado_fuga"] = ""
+
+        # Texto de conclusión de fuga
+    if datos_inspeccion["estado_fuga"] == "SIN FUGA":
+        datos_inspeccion["texto_fuga"] = (
+            "encontrándose las instalaciones internas sin fuga."
+        )
+
+    elif datos_inspeccion["estado_fuga"] == "CON FUGA":
+        datos_inspeccion["texto_fuga"] = (
+            "encontrándose las instalaciones internas con fuga."
+        )
+
+    else:
+        datos_inspeccion["texto_fuga"] = ""
     
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
@@ -283,34 +297,13 @@ Si no existen datos suficientes, omite la descripción de las unidades.
 
 Respecto a las instalaciones internas, no debes describir pruebas hidráulicas ni copiar literalmente las observaciones.
 
-Debes incorporar el estado de fuga consignado en el campo "estado_fuga".
+Debes incorporar literalmente el texto consignado en el campo "texto_fuga".
 
-Si el campo "estado_fuga" contiene:
+No debes modificarlo.
 
-"SIN FUGA"
+No debes omitirlo.
 
-debes incorporar expresamente la frase:
-
-"sin fuga".
-
-Si el campo "estado_fuga" contiene:
-
-"CON FUGA"
-
-debes incorporar expresamente la frase:
-
-"con fuga".
-
-La conclusión sobre la existencia o inexistencia de fuga es obligatoria y no debe omitirse.
-
-No debes describir pruebas hidráulicas.
-
-No debes copiar literalmente las observaciones.
-
-No debes precisar el lugar específico de la fuga.
-
-La expresión "sin fuga" o "con fuga" debe aparecer en el Considerando Primero aun cuando las observaciones hayan sido resumidas.
-
+Si dicho campo está vacío, no debes hacer referencia a las instalaciones internas.
 La frase "sin fuga" o "con fuga" debe incorporarse al final del párrafo correspondiente a la inspección interna.
 
 No debes omitir dicha conclusión bajo ninguna circunstancia.
