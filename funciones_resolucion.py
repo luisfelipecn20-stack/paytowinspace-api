@@ -205,28 +205,13 @@ def generar_considerando_1(datos_inspeccion):
             fecha.strftime("%d/%m/%Y")
         )
 
-    # Determinar estado de fuga
-    observacion = (
-        datos_inspeccion.get("observ", "")
-        + " "
-        + datos_inspeccion.get("observ1", "")
-    ).upper()
-
-    if (
-        "NO REGISTRA CONSUMO" in observacion
-        or "SIN FUGA" in observacion
-    ):
-
-        datos_inspeccion["estado_fuga"] = "SIN FUGA"
-
-    elif "FUGA" in observacion:
-
-        datos_inspeccion["estado_fuga"] = "CON FUGA"
-
-    else:
-
-        datos_inspeccion["estado_fuga"] = ""
-
+   # Determinar estado de las instalaciones internas
+datos_inspeccion["estado_fuga"] = (
+    datos_inspeccion.get(
+        "estado_instalaciones",
+        ""
+    )
+)
     # Determinar tipo de inspección
     datos_inspeccion["texto_inspeccion"] = (
         determinar_texto_inspeccion(
