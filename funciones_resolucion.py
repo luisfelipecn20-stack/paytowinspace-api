@@ -219,9 +219,8 @@ def determinar_texto_inspeccion(datos_inspeccion):
         )
 
     elif (
-        "PARCIAL" in observ
-        or "SE INSPECCIONO 1ER NIVEL" in observ
-        or "NO SE INSPECCIONO 2DO" in observ
+        "SE INSPECCIONO 1ER NIVEL" in observ
+        or "NO SE INSPECCIONO" in observ
     ):
 
         return (
