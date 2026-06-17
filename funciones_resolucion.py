@@ -211,7 +211,7 @@ datos_inspeccion["estado_fuga"] = (
         "estado_instalaciones",
         ""
     )
-)
+
     # Determinar tipo de inspección
     datos_inspeccion["texto_inspeccion"] = (
         determinar_texto_inspeccion(
