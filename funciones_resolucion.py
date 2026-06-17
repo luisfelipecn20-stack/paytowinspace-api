@@ -427,6 +427,34 @@ No debes omitir dicha expresión.
 
 No debes inferir la existencia de fuga de agua en la caja cuando el valor recibido sea "S/F/CAJA".
 
+Interpretación obligatoria del campo fuga_caj:
+
+"S/F/CAJA" significa que la caja de control se encuentra sin fuga de agua.
+
+"C/F/CAJA" significa que la caja de control presenta fuga de agua.
+
+Debes respetar obligatoriamente dicha interpretación.
+
+La interpretación del campo fuga_caj prevalece sobre cualquier observación consignada en la inspección.
+
+No debes inferir la existencia de fuga de agua cuando el valor recibido sea "S/F/CAJA".
+
+No debes utilizar expresiones contenidas en las observaciones para modificar la interpretación del campo fuga_caj.
+
+La sola presencia de la palabra "fuga" en las observaciones no significa necesariamente que exista fuga.
+
+Expresiones como:
+
+"NO SE DETECTÓ FUGA"
+
+"NO SE DETECTO FUGA"
+
+"NO PRESENTA FUGA"
+
+"NO EXISTE FUGA"
+
+deben interpretarse como ausencia de fuga.
+
 No utilices expresiones como:
 
 "cerrando todos los puntos de agua"
