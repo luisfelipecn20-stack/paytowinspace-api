@@ -137,12 +137,75 @@ def determinar_texto_audiencia(hubo_acuerdo):
         "continuando con el proceso de reclamo en la vía administrativa."
     )
 
-def determinar_texto_inspeccion(datos_inspeccion):
+def determinar_descripcion_unidades(datos_inspeccion):
 
+    partes = []
+
+    # DOMÉSTICAS OCUPADAS
+    dom_ocup = int(datos_inspeccion.get("dom_ocup", 0))
+
+    if dom_ocup > 0:
+        if dom_ocup == 1:
+            partes.append("01 doméstico habitado")
+        else:
+            partes.append(
+                f"{dom_ocup:02d} unidades de uso doméstico habitadas"
+            )
+
+    # COMERCIALES OCUPADAS
+    com_ocup = int(datos_inspeccion.get("com_ocup", 0))
+
+    if com_ocup > 0:
+        if com_ocup == 1:
+            partes.append("01 comercial en actividad")
+        else:
+            partes.append(
+                f"{com_ocup:02d} comerciales en actividad"
+            )
+
+    # INDUSTRIALES OCUPADAS
+    ind_ocup = int(datos_inspeccion.get("ind_ocup", 0))
+
+    if ind_ocup > 0:
+        if ind_ocup == 1:
+            partes.append("01 industrial en actividad")
+        else:
+            partes.append(
+                f"{ind_ocup:02d} industriales en actividad"
+            )
+
+    # ESTATALES OCUPADAS
+    est_ocup = int(datos_inspeccion.get("est_ocup", 0))
+
+    if est_ocup > 0:
+        if est_ocup == 1:
+            partes.append("01 estatal en actividad")
+        else:
+            partes.append(
+                f"{est_ocup:02d} estatales en actividad"
+            )
+
+    # DOMÉSTICAS DESOCUPADAS
+    dom_desc = int(datos_inspeccion.get("dom_desc", 0))
+
+    if dom_desc > 0:
+        if dom_desc == 1:
+            partes.append("01 doméstico desocupado")
+        else:
+            partes.append(
+                f"{dom_desc:02d} domésticos desocupados"
+            )
+
+    return ", ".join(partes)
+    
+def determinar_texto_inspeccion(datos_inspeccion):
+    
     observ = (
         datos_inspeccion.get("observ", "")
         + " "
-        + datos_inspeccion.get("observ1", "")
+        + datos_inspeccion.get("observm1", "")
+        + " "
+        + datos_inspeccion.get("observm2", "")
     ).upper()
 
     if (
@@ -249,6 +312,9 @@ def generar_considerando_1(datos_inspeccion):
         datos_inspeccion.get("est_ocup", 0)
 )
 
+    datos_inspeccion["descripcion_unidades"] = (
+        determinar_descripcion_unidades(datos_inspeccion)
+    )
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
