@@ -212,12 +212,12 @@ datos_inspeccion["estado_fuga"] = (
         ""
     )
 )
-    # Determinar tipo de inspección
-    datos_inspeccion["texto_inspeccion"] = (
-        determinar_texto_inspeccion(
-            datos_inspeccion
-        )
+   # Determinar tipo de inspección
+datos_inspeccion["texto_inspeccion"] = (
+    determinar_texto_inspeccion(
+        datos_inspeccion
     )
+)
     
     # Construir inicio obligatorio del considerando
     datos_inspeccion["inicio_considerando"] = (
