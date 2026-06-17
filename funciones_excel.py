@@ -54,7 +54,7 @@ def guardar_excel_maestro(
 
 def obtener_datos_resolucion(
         excel_bruto,
-        re):
+        num_os):
 
     inicio_total = time.time()
 
@@ -71,31 +71,8 @@ def obtener_datos_resolucion(
     inicio_filtro = time.time()
 
     df_filtrado = df_bruto[
-        df_bruto["nreclamo"] == str(re)
+        df_bruto["num_os"].astype(str) == str(num_os)
     ]
-
-    print(
-        "Tiempo filtro:",
-        round(time.time() - inicio_filtro, 2),
-        "segundos"
-    )
-
-    if df_filtrado.empty:
-        return {}
-
-    fila = df_filtrado.iloc[0]
-
-    resultado = fila.reindex(
-        COLUMNAS_RESOLUCION
-    ).to_dict()
-
-    print(
-        "Tiempo total:",
-        round(time.time() - inicio_total, 2),
-        "segundos"
-    )
-
-    return resultado
 
     print(
         "Tiempo filtro:",
