@@ -205,25 +205,27 @@ def generar_considerando_1(datos_inspeccion):
             fecha.strftime("%d/%m/%Y")
         )
 
-   # Determinar estado de las instalaciones internas
-datos_inspeccion["estado_fuga"] = (
-    datos_inspeccion.get(
-        "estado_instalaciones",
-        ""
+    # Determinar estado de las instalaciones internas
+    datos_inspeccion["estado_fuga"] = (
+        datos_inspeccion.get(
+            "estado_instalaciones",
+            ""
+        )
     )
-)
-   # Determinar tipo de inspección
-datos_inspeccion["texto_inspeccion"] = (
-    determinar_texto_inspeccion(
-        datos_inspeccion
+
+    # Determinar tipo de inspección
+    datos_inspeccion["texto_inspeccion"] = (
+        determinar_texto_inspeccion(
+            datos_inspeccion
+        )
     )
-)
-    
+
     # Construir inicio obligatorio del considerando
     datos_inspeccion["inicio_considerando"] = (
-    f"Con fecha {datos_inspeccion['fec_vis']}, "
-    f"{datos_inspeccion['texto_inspeccion']},"
-)
+        f"Con fecha {datos_inspeccion['fec_vis']}, "
+        f"{datos_inspeccion['texto_inspeccion']},"
+    )
+
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
