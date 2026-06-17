@@ -33,6 +33,7 @@ Utiliza las siguientes claves:
 
 {
 "niss":"",
+"num_os":"",
     "fecha_inspeccion":"",
     "tipo_unidad_uso":"",
     "unidades_domesticas":"",
@@ -49,6 +50,24 @@ Utiliza las siguientes claves:
 Reglas:
 
 1. Busca el N° de suministro y extrae el NISS.
+
+1.1 Busca la Orden de Servicio (O/S).
+
+La O/S puede aparecer como:
+
+- O/S
+- O.S.
+- Orden de Servicio
+
+Extrae únicamente el número correspondiente.
+
+Devuélvelo en la clave:
+
+"num_os"
+
+No inventes información.
+
+Si no es visible o existe duda, déjalo vacío.
 
 2. La fecha de inspección se encuentra en la primera hoja del Formato 5.
 
