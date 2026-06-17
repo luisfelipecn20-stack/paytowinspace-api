@@ -13,7 +13,7 @@ app = FastAPI()
 
 class DatosEntrada(BaseModel):
     niss: str = ""
-    re: str = ""
+    num_os: str = ""
     inspeccion: str = ""
     gfmf: str = ""
     operacional: str = ""
@@ -40,12 +40,12 @@ def procesar(datos: DatosEntrada):
 
     datos_resolucion = obtener_datos_resolucion(
     excel_stream,
-    datos.re
+    datos.num_os
     )
 
     return {
         "resultado": "OK",
-        "re_recibido": datos.re,
+        "num_os_recibido": datos.num_os,
         "datos_resolucion": datos_resolucion
     }
 
@@ -55,7 +55,7 @@ def resolver(datos: DatosEntrada):
 
     return {
         "resultado": "OK",
-        "re": datos.re,
+        "num_os": datos.num_os,
         "cantidad_pdfs": len(datos.pdfs),
         "pdfs": datos.pdfs
     }
@@ -118,7 +118,7 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
 @app.post("/generar_considerando_1")
 async def generar_considerando_1_api(
     archivo: UploadFile = File(...),
-    re: str = ""
+    num_os: str = ""
 ):
 
     contenido_excel = await archivo.read()
@@ -129,13 +129,13 @@ async def generar_considerando_1_api(
 
     datos_resolucion = obtener_datos_resolucion(
     excel_stream,
-    re
+    num_os
     )
 
     if not datos_resolucion:
         return {
-            "error": "No se encontró el RE en el Excel."
-        }
+            "error": f"No se encontró la O/S {num_os} en el Excel."
+    }
 
     considerando_1 = generar_considerando_1(
         datos_resolucion
