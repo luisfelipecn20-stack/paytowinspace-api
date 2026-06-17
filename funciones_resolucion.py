@@ -156,6 +156,16 @@ def determinar_texto_inspeccion(datos_inspeccion):
         )
 
     elif (
+        "PARCIAL" in observ
+        or "SE INSPECCIONO 1ER NIVEL" in observ
+        or "NO SE INSPECCIONO 2DO" in observ
+    ):
+
+        return (
+            "se llevó a cabo la inspección interna y externa de manera parcial al predio"
+        )
+
+    elif (
         "AUSENTE" in observ
         or "AUSENCIA" in observ
     ):
@@ -163,12 +173,6 @@ def determinar_texto_inspeccion(datos_inspeccion):
         return (
             "se llevó a cabo la inspección externa al predio, "
             "no habiéndose efectuado la inspección interna por ausencia del usuario"
-        )
-
-    elif "PARCIAL" in observ:
-
-        return (
-            "se llevó a cabo la inspección interna y externa de manera parcial al predio"
         )
 
     else:
@@ -550,16 +554,23 @@ La estructura y redacción deben ser similares a las resoluciones emitidas por e
         ""
     ).strip()
 
-    if datos_inspeccion.get("estado_fuga") == "SIN FUGA":
+    if (
+        datos_inspeccion.get("estado_fuga") == "SIN FUGA"
+        and "oposición del usuario" not in datos_inspeccion["texto_inspeccion"]
+        and "ausencia del usuario" not in datos_inspeccion["texto_inspeccion"]
+    ):
 
         considerando += (
             " Asimismo, se verificó que las instalaciones internas se encuentran sin fuga."
         )
 
-    elif datos_inspeccion.get("estado_fuga") == "CON FUGA":
+    elif (
+        datos_inspeccion.get("estado_fuga") == "CON FUGA"
+        and "oposición del usuario" not in datos_inspeccion["texto_inspeccion"]
+        and "ausencia del usuario" not in datos_inspeccion["texto_inspeccion"]
+    ):
 
         considerando += (
             " Asimismo, se verificó que las instalaciones internas se encuentran con fuga."
         )
-
     return considerando
