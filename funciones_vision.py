@@ -34,17 +34,18 @@ Utiliza las siguientes claves:
 {
 "niss":"",
 "num_os":"",
-    "fecha_inspeccion":"",
-    "tipo_unidad_uso":"",
-    "unidades_domesticas":"",
-    "unidades_comerciales":"",
-    "unidades_industriales":"",
-    "unidades_estatales":"",
-    "ocupacion_predio":"",
-    "observaciones_inspeccion":"",
-    "medidor":"",
-    "lectura_actual":"",
-    "fuga_caja":""
+"fecha_inspeccion":"",
+"tipo_unidad_uso":"",
+"unidades_domesticas":"",
+"unidades_comerciales":"",
+"unidades_industriales":"",
+"unidades_estatales":"",
+"ocupacion_predio":"",
+"observaciones_inspeccion":"",
+"medidor":"",
+"lectura_actual":"",
+"fuga_caja":"",
+"estado_instalaciones":""
 }
 
 Reglas:
@@ -153,6 +154,44 @@ Devuelve únicamente:
 - NO
 
 en la clave "fuga_caja".
+
+8.1 Busca la tabla denominada:
+
+"DETALLE DE LA INSPECCIÓN DE LAS INSTALACIONES SANITARIAS INTERIORES"
+
+Observa exclusivamente la fila:
+
+"Con fuga"
+
+Si la fila "Con fuga" no contiene ninguna cantidad ni anotación, devuelve:
+
+"SIN FUGA"
+
+en la clave:
+
+"estado_instalaciones"
+
+Si existe al menos una cantidad o anotación en cualquier columna de la fila "Con fuga", devuelve:
+
+"CON FUGA"
+
+en la clave:
+
+"estado_instalaciones"
+
+No utilices las observaciones manuscritas para determinar este valor.
+
+No interpretes frases como:
+
+"no se detectó fuga"
+
+"no registra consumo"
+
+"se realizó prueba hidráulica"
+
+La determinación debe basarse únicamente en la fila "Con fuga" de la tabla de instalaciones sanitarias interiores.
+
+Si existe duda, da prioridad a las cantidades registradas en dicha fila.
 
 9. No inventes información.
 
