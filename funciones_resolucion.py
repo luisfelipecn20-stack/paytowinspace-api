@@ -236,7 +236,14 @@ def generar_considerando_1(datos_inspeccion):
     datos_inspeccion["inicio_considerando"] = (
         f"Con fecha {datos_inspeccion['fec_vis']}, "
         f"{datos_inspeccion['texto_inspeccion']},"
-    )
+)
+
+    datos_inspeccion["tipo_predio"] = determinar_tipo_predio(
+        datos_inspeccion.get("dom_ocup", 0),
+        datos_inspeccion.get("com_ocup", 0),
+        datos_inspeccion.get("ind_ocup", 0),
+        datos_inspeccion.get("est_ocup", 0)
+)
 
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
@@ -375,6 +382,38 @@ Cuando corresponda, utiliza las siguientes expresiones:
 * "la conexión domiciliaria abastece a un predio mixto"
 * "la conexión domiciliaria abastece a un predio comercial en actividad"
 * "la conexión domiciliaria abastece a un predio doméstico desocupado"
+
+La clasificación del predio debe realizarse exclusivamente utilizando el campo "tipo_predio".
+
+Si el campo "tipo_predio" es:
+
+"UNIFAMILIAR"
+
+debes indicar:
+
+"la conexión domiciliaria abastece a un predio unifamiliar"
+
+Si el campo "tipo_predio" es:
+
+"MULTIFAMILIAR"
+
+debes indicar:
+
+"la conexión domiciliaria abastece a un predio multifamiliar"
+
+Si el campo "tipo_predio" es:
+
+"MIXTO"
+
+debes indicar:
+
+"la conexión domiciliaria abastece a un predio mixto"
+
+No debes utilizar las observaciones para modificar la clasificación del predio.
+
+Las observaciones solo pueden utilizarse como información complementaria.
+
+La clasificación determinada por el campo "tipo_predio" prevalece sobre cualquier descripción contenida en las observaciones.
 
 Si existen unidades ocupadas y desocupadas, debes describirlas siguiendo el estilo:
 
