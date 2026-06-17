@@ -328,3 +328,4 @@ Devuelve únicamente:
     )
 
     return respuesta.choices[0].message.content
+    print(respuesta.choices[0].message.content)
