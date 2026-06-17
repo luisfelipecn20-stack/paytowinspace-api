@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from funciones_pdf import contar_paginas_pdf, convertir_pdf_a_imagenes
 from funciones_vision import analizar_imagen
 from funciones_excel import obtener_datos_resolucion
-from funciones_resolucion import generar_considerando_1
+from funciones_considerando_1 import generar_considerando_1
 
 app = FastAPI()
 
