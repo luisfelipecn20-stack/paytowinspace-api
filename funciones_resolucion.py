@@ -206,12 +206,24 @@ def generar_considerando_1(datos_inspeccion):
         )
 
     # Determinar estado de las instalaciones internas
-    datos_inspeccion["estado_fuga"] = (
-        datos_inspeccion.get(
-            "estado_instalaciones",
-            ""
+
+    if datos_inspeccion.get("estado_instalaciones"):
+
+        datos_inspeccion["estado_fuga"] = (
+            datos_inspeccion["estado_instalaciones"]
         )
-    )
+
+    elif datos_inspeccion.get("fuga_caj") == "S/F/CAJA":
+
+        datos_inspeccion["estado_fuga"] = "SIN FUGA"
+
+    elif datos_inspeccion.get("fuga_caj") == "C/F/CAJA":
+
+        datos_inspeccion["estado_fuga"] = "CON FUGA"
+
+    else:
+
+        datos_inspeccion["estado_fuga"] = ""
 
     # Determinar tipo de inspección
     datos_inspeccion["texto_inspeccion"] = (
