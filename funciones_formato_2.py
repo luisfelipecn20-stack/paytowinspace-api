@@ -44,7 +44,7 @@ def obtener_datos_formato_2(pdf_formato_2):
     )
 
     resultado = analizar_imagen(
-        imagenes[0],
+        imagenes[:8],
         PROMPT_FORMATO_2
     )    
 
