@@ -37,12 +37,12 @@ def obtener_datos_formato_2(pdf_formato_2):
     return datos_formato_2
 
 def determinar_canal_atencion(re):
-    
+
     if re.startswith("RE111"):
         return "TELEFONICO"
 
     elif re.startswith("RE211"):
-        return "POR DEFINIR"
+        return "WEB"
 
     else:
         return ""
@@ -52,13 +52,11 @@ def tiene_correo(correo_electronico):
     if correo_electronico.strip() == "":
         return "NO"
 
-    else:
-        return "SI"
-
+    return "SI"
+    
 def solicita_contraste(opcion):
 
     if opcion.strip().upper() == "SI":
         return "SI"
 
-    else:
-        return "NO"
+    return "NO"
