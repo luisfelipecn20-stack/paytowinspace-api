@@ -1,9 +1,14 @@
 # funciones_formato_2.py
+import json
+
+from funciones_pdf import convertir_pdf_a_imagenes
+from funciones_vision import analizar_imagen
+from prompt_formato_2 import PROMPT_FORMATO_2
 
 def obtener_datos_formato_2(pdf_formato_2):
 
     datos_formato_2 = {
-
+        
         # Identificación del expediente
         "re": "",
         "niss": "",
@@ -34,6 +39,12 @@ def obtener_datos_formato_2(pdf_formato_2):
 
     }
 
+    imagenes = convertir_pdf_a_imagenes(
+    pdf_formato_2
+    )
+
+    imagenes = imagenes[:5]
+    
     return datos_formato_2
 
 
