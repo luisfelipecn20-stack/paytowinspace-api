@@ -40,13 +40,17 @@ def obtener_datos_formato_2(pdf_formato_2):
     }
 
     imagenes = convertir_pdf_a_imagenes(
-    pdf_formato_2
+        pdf_formato_2
     )
 
-    imagenes = imagenes[:5]
+    resultado = analizar_imagen(
+        imagenes[0],
+        PROMPT_FORMATO_2
+    )
+
+    print(resultado)
     
     return datos_formato_2
-
 
 def tiene_correo(correo_electronico):
 
