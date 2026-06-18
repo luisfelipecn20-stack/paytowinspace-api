@@ -46,11 +46,13 @@ def obtener_datos_formato_2(pdf_formato_2):
     resultado = analizar_imagen(
         imagenes[0],
         PROMPT_FORMATO_2
-    )
+    )    
 
     print(resultado)
-    
-    return datos_formato_2
+
+    return {
+        "respuesta_gpt": resultado
+    }
 
 def tiene_correo(correo_electronico):
 
