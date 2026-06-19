@@ -215,6 +215,36 @@ Si ambas casillas no son visibles o la marca no es identificable, devuelve:
 
 "".
 
+ATENCIÓN:
+
+En el Formato 2 pueden existir varios grupos de casillas SI y NO.
+
+Ignora completamente las casillas correspondientes a:
+
+- Fijación de resolución por correo.
+- Notificación por correo electrónico.
+- Otras secciones del documento.
+
+Para determinar "solicita_contraste" utiliza únicamente las casillas ubicadas junto al texto:
+
+"Confirmación de la contrastación"
+
+o las casillas ubicadas dentro de la sección:
+
+"Declaración del reclamante (aplicable a reclamos por consumo medido)"
+
+No confundas las casillas de otras secciones con las de la contrastación.
+
+Si la X está en SI, devuelve:
+
+"SI"
+
+Si la X está en NO, devuelve:
+
+"NO"
+
+Si no es posible identificar claramente las casillas correspondientes a la contrastación, devuelve "".
+
 9. En "fecha_audiencia" revisa la sección:
 
 "CITACIÓN A REUNIÓN DE CONCILIACIÓN"
@@ -383,7 +413,17 @@ Los únicos valores posibles son:
 - WEB
 - PRESENCIAL
 
-La primera hoja del expediente puede utilizarse únicamente para identificar el canal de atención.
+El valor de "canal_atencion" debe determinarse exclusivamente utilizando la primera hoja del expediente.
+
+Una vez identificado el canal de atención, conserva ese valor durante todo el proceso.
+
+No modifiques posteriormente el canal de atención utilizando información del Formato 2 ni de otras páginas.
+
+Los únicos valores permitidos son:
+
+- TELEFONICO
+- WEB
+- PRESENCIAL
 
 Si identificas una atención telefónica o una modalidad "Por teléfono", devuelve:
 
