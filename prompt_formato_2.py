@@ -164,86 +164,32 @@ Ejemplos:
 
 No incluyas montos, teléfonos ni observaciones adicionales.
 
-8. En "solicita_contraste" revisa cuidadosamente la sección:
+8. En "solicita_contraste" revisa únicamente la sección:
 
-"Declaración del reclamante (aplicable a reclamos por consumo medido)"
+"DECLARACIÓN DEL RECLAMANTE (aplicable a reclamos por consumo medido)"
 
-Observa las casillas SI y NO.
+Busca la frase:
 
-Si la marca X se encuentra en SI, devuelve:
+"Solicito la realización de la prueba de contrastación y asumir su costo, si el resultado de la prueba indica que el medidor no sobrerregistra."
 
-"SI"
+Las únicas casillas válidas son las ubicadas inmediatamente a la derecha de esa frase.
 
-Si la marca X se encuentra en NO, devuelve:
+Existen dos filas:
 
-"NO"
+Si
+No
 
-No supongas la respuesta.
-
-No interpretes texto adicional.
-
-Si no es posible identificar claramente la casilla marcada, devuelve "".
-
-La presencia del Formato 7 o de la lista UVM NO significa que el usuario haya solicitado la contrastación.
-
-Determina "solicita_contraste" observando únicamente la X marcada en la sección:
-
-"Declaración del reclamante (aplicable a reclamos por consumo medido)"
-
-No utilices:
-
-- Formato 7.
-- Lista UVM.
-- Cartas.
-- Correos electrónicos.
-- Reclamos virtuales.
-- Explicaciones sobre la prueba de contrastación.
-
-No deduzcas la respuesta.
-
-No supongas la respuesta.
-
-Si la X está en SI devuelve:
+Si la X está en la fila "Si", devuelve:
 
 "SI"
 
-Si la X está en NO devuelve:
+Si la X está en la fila "No", devuelve:
 
 "NO"
 
-Si ambas casillas no son visibles o la marca no es identificable, devuelve:
+Ignora cualquier otro grupo de casillas SI y NO del documento.
 
-"".
-
-ATENCIÓN:
-
-En el Formato 2 pueden existir varios grupos de casillas SI y NO.
-
-Ignora completamente las casillas correspondientes a:
-
-- Fijación de resolución por correo.
-- Notificación por correo electrónico.
-- Otras secciones del documento.
-
-Para determinar "solicita_contraste" utiliza únicamente las casillas ubicadas junto al texto:
-
-"Confirmación de la contrastación"
-
-o las casillas ubicadas dentro de la sección:
-
-"Declaración del reclamante (aplicable a reclamos por consumo medido)"
-
-No confundas las casillas de otras secciones con las de la contrastación.
-
-Si la X está en SI, devuelve:
-
-"SI"
-
-Si la X está en NO, devuelve:
-
-"NO"
-
-Si no es posible identificar claramente las casillas correspondientes a la contrastación, devuelve "".
+Si no es posible identificar claramente las casillas, devuelve "".
 
 9. En "fecha_audiencia" revisa la sección:
 
