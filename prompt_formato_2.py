@@ -21,13 +21,35 @@ Reglas:
 
 1. No inventes información.
 
-La fuente principal y autoritativa es el Formato 2.
+El expediente puede contener correos Outlook, cartas, Formato 7, lista UVM, reclamos virtuales y otros anexos.
 
-Todos los campos del JSON deben extraerse preferentemente del Formato 2.
+PRIMER PASO:
 
-No utilices información proveniente de correos electrónicos, Outlook, citaciones u otros documentos cuando el dato exista en el Formato 2.
+Identifica el canal de atención utilizando únicamente la primera hoja del expediente.
 
-La primera hoja del expediente solo debe utilizarse para ayudar a identificar el canal de atención (WEB, TELEFONICO o PRESENCIAL).
+Los únicos valores posibles son:
+
+- WEB
+- TELEFONICO
+- PRESENCIAL
+
+SEGUNDO PASO:
+
+Busca la página donde aparezca:
+
+FORMATO 2
+
+Presentación del Reclamo
+
+TERCER PASO:
+
+A partir de ese momento ignora completamente el resto del expediente.
+
+Todos los campos del JSON deben extraerse exclusivamente del Formato 2.
+
+Nunca utilices información de otros documentos para completar, corregir o inferir datos.
+
+El Formato 2 tiene prioridad absoluta sobre cualquier otra página.
 
 2. Si un dato no existe, devuelve una cadena vacía "".
 
@@ -101,6 +123,35 @@ Los valores más frecuentes son:
 
 Si aparece otra tipología distinta, extráela exactamente como figure en el campo "Tipo de reclamo".
 
+El campo "tipo_reclamo" debe extraerse únicamente del recuadro:
+
+"Tipo de reclamo (ver lista del reverso)"
+
+No utilices:
+
+- Fundamento del reclamo.
+- Descripción del reclamo.
+- Reclamo virtual.
+- Cartas.
+- Correos electrónicos.
+- Formato 7.
+
+No clasifiques ni interpretes.
+
+Devuelve exactamente el texto visible dentro del campo.
+
+Por ejemplo, si otro documento contiene:
+
+"Uso de la red"
+
+pero en el Formato 2 el recuadro dice:
+
+"Consumo Medido"
+
+debes devolver:
+
+"Consumo Medido".
+
 7. En "mes_reclamado" extrae únicamente los meses reclamados.
 
 Ejemplos:
@@ -133,6 +184,37 @@ No interpretes texto adicional.
 
 Si no es posible identificar claramente la casilla marcada, devuelve "".
 
+La presencia del Formato 7 o de la lista UVM NO significa que el usuario haya solicitado la contrastación.
+
+Determina "solicita_contraste" observando únicamente la X marcada en la sección:
+
+"Declaración del reclamante (aplicable a reclamos por consumo medido)"
+
+No utilices:
+
+- Formato 7.
+- Lista UVM.
+- Cartas.
+- Correos electrónicos.
+- Reclamos virtuales.
+- Explicaciones sobre la prueba de contrastación.
+
+No deduzcas la respuesta.
+
+No supongas la respuesta.
+
+Si la X está en SI devuelve:
+
+"SI"
+
+Si la X está en NO devuelve:
+
+"NO"
+
+Si ambas casillas no son visibles o la marca no es identificable, devuelve:
+
+"".
+
 9. En "fecha_audiencia" revisa la sección:
 
 "CITACIÓN A REUNIÓN DE CONCILIACIÓN"
@@ -163,6 +245,32 @@ Si no existe un correo electrónico consignado, devuelve "".
 
 No inventes correos electrónicos.
 
+El correo electrónico debe extraerse únicamente del campo:
+
+"e-mail"
+
+del Formato 2.
+
+No utilices correos electrónicos encontrados en:
+
+- Correos Outlook.
+- Reclamos virtuales.
+- Cartas.
+- Formato 7.
+- Otros anexos.
+
+No completes caracteres faltantes.
+
+No reemplaces letras.
+
+No corrijas ortografía.
+
+No modifiques puntos, arrobas o dominios.
+
+Devuelve exactamente los caracteres visibles en el campo "e-mail".
+
+Si el campo e-mail está vacío, devuelve "".
+
 11. En "direccion_suministro" construye la dirección utilizando exclusivamente la información del Formato 2.
 
 Utiliza los siguientes campos:
@@ -182,6 +290,38 @@ No escribas las palabras "Mz" o "Lote" cuando los campos estén vacíos.
 No utilices direcciones de oficinas comerciales ni direcciones provenientes de correos electrónicos u otros documentos.
 
 La dirección debe corresponder únicamente al predio motivo del reclamo.
+
+No generes una dirección libre.
+
+No resumas.
+
+No omitas campos.
+
+Lee individualmente los siguientes campos del Formato 2:
+
+- Calle, jirón, avenida o pasaje.
+- Número.
+- Manzana.
+- Lote.
+- Urbanización o barrio.
+- Provincia.
+- Distrito.
+
+Después concatena los campos visibles en ese mismo orden.
+
+Conserva exactamente las palabras escritas en el Formato 2.
+
+No corrijas ortografía.
+
+No reemplaces palabras.
+
+No completes información faltante.
+
+Si un campo está vacío, simplemente omítelo.
+
+No utilices información de otros documentos.
+
+No inventes urbanizaciones, provincias o distritos.
 
 12. En "direccion_procesal" extrae la dirección consignada en el bloque "DOMICILIO PROCESAL" del Formato 2.
 
@@ -204,6 +344,36 @@ No utilices direcciones provenientes de correos electrónicos ni de otros docume
 Si no fuera posible identificar una dirección procesal distinta, utiliza la dirección del suministro.
 
 Es válido que ambas direcciones sean iguales.
+
+No generes una dirección libre.
+
+No resumas.
+
+No omitas campos.
+
+Lee individualmente:
+
+- Calle, jirón, avenida o pasaje.
+- Número.
+- Manzana.
+- Lote.
+- Urbanización o barrio.
+- Provincia.
+- Distrito.
+
+Después concatena los campos visibles en ese mismo orden.
+
+Conserva exactamente las palabras escritas en el Formato 2.
+
+No corrijas ortografía.
+
+No reemplaces palabras.
+
+No completes información faltante.
+
+Si un campo está vacío, simplemente omítelo.
+
+No utilices información proveniente de otros documentos.
 
 13. En "canal_atencion" determina el canal de atención del reclamo.
 
@@ -242,4 +412,18 @@ No utilices listas.
 No utilices objetos anidados.
 
 Si un dato no existe, devuelve "".
+
+15. Después de localizar el Formato 2, trabaja únicamente con ese documento.
+
+No resuelvas contradicciones entre documentos.
+
+No combines información de varias páginas.
+
+No completes información faltante utilizando otros anexos.
+
+No decidas cuál documento es más correcto.
+
+Actúa como si el resto del expediente no existiera.
+
+El Formato 2 es la única fuente oficial de información.
 """
