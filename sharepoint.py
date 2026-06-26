@@ -31,7 +31,6 @@ def probar_conexion():
     token = obtener_token()
 
     if "access_token" not in token:
-
         return {
             "ok": False,
             "error": token
@@ -41,13 +40,22 @@ def probar_conexion():
         "Authorization": f"Bearer {token['access_token']}"
     }
 
+    url = (
+        "https://graph.microsoft.com/v1.0/"
+        "sites/sedapalcompe.sharepoint.com:/sites/RECLAMOSECCA2022"
+    )
+
     respuesta = requests.get(
-        "https://graph.microsoft.com/v1.0/sites",
+        url,
         headers=headers
     )
 
     return {
         "ok": respuesta.ok,
         "status_code": respuesta.status_code,
-        "respuesta": respuesta.json()
+        "respuesta": (
+            respuesta.json()
+            if "application/json" in respuesta.headers.get("Content-Type", "")
+            else respuesta.text
+        )
     }
