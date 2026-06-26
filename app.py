@@ -8,6 +8,7 @@ from funciones_vision import analizar_imagen
 from funciones_excel import obtener_datos_resolucion
 from funciones_considerando_1 import generar_considerando_1
 from funciones_formato_2 import obtener_datos_formato_2
+from sharepoint import probar_conexion
 
 app = FastAPI()
 
@@ -159,3 +160,8 @@ async def analizar_formato_2(
     )
 
     return datos_formato_2
+
+@app.get("/test-sharepoint")
+def test_sharepoint():
+
+    return probar_conexion()
