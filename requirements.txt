@@ -8,3 +8,5 @@ pymupdf
 python-multipart
 pillow
 pdf2image
+msal
+requests
