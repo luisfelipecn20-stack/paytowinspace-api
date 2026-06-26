@@ -39,7 +39,10 @@ def probar_conexion():
     headers = {
         "Authorization": f"Bearer {token['access_token']}"
     }
-    url = "https://graph.microsoft.com/v1.0/organization"
+    url = (
+    "https://graph.microsoft.com/v1.0/"
+    "sites/sedapalcompe.sharepoint.com:/sites/RECLAMOSECCA2022"
+    )
 
     respuesta = requests.get(
         url,
