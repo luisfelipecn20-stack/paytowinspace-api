@@ -6,7 +6,7 @@ cliente = OpenAI(
 )
 
 
-def obtener_datos_considerando_4(imagen):
+def obtener_datos_informe_facturacion(imagen):
 
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
