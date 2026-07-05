@@ -23,3 +23,18 @@ def convertir_pdf_a_imagenes(contenido_pdf):
         imagenes.append(imagen)
 
     return imagenes
+
+def extraer_texto_pdf(contenido_pdf):
+
+    pdf = fitz.open(
+        stream=contenido_pdf,
+        filetype="pdf"
+    )
+
+    texto = ""
+
+    for pagina in pdf:
+
+        texto += pagina.get_text()
+
+    return texto
