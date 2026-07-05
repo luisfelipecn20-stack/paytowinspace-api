@@ -1,13 +1,10 @@
-from openai import OpenAI
-import os
+def generar_considerando_3():
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def generar_considerando_3(datos):
-    """
-    Genera el texto del Considerando Tercero utilizando
-    la información previamente procesada por la API.
-    """
-
-    pass
+    return (
+        "Mediante informe Técnico Operacional, el área operativa precisa que "
+        "el sector donde se ubica el predio en cuestión cuenta con un horario "
+        "de abastecimiento diario, y que no existieron elementos exógenos por "
+        "la interrupción del servicio, ni se afectó la correcta lectura del "
+        "medidor, porque la zona cuenta con válvula automática de purga de aire "
+        "operativo."
+    )
