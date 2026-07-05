@@ -82,7 +82,11 @@ def obtener_datos_formato_2(pdf_formato_2):
         2
     )
 
-    return obtener_datos(
+    datos = obtener_datos(
         texto_formato_2,
         texto_formato_3
     )
+
+    print(datos)
+
+    return datos
