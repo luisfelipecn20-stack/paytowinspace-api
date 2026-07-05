@@ -3,7 +3,7 @@ import base64
 from io import BytesIO
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-from funciones_pdf import contar_paginas_pdf, convertir_pdf_a_imagenes
+from funciones_pdf import contar_paginas_pdf, convertir_pdf_a_imagenes, extraer_texto_pdf
 from funciones_vision import analizar_imagen
 from funciones_excel import obtener_datos_resolucion
 from funciones_considerando_1 import generar_considerando_1
@@ -188,3 +188,18 @@ async def analizar_informe_facturacion(
     )
 
     return datos_informe
+
+@app.post("/extraer_texto_pdf")
+async def extraer_texto_pdf_api(
+    archivo: UploadFile = File(...)
+):
+
+    contenido = await archivo.read()
+
+    texto = extraer_texto_pdf(
+        contenido
+    )
+
+    return {
+        "texto": texto
+    }
