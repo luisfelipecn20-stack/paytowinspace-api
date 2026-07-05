@@ -9,6 +9,7 @@ from funciones_excel import obtener_datos_resolucion
 from funciones_considerando_1 import generar_considerando_1
 from funciones_considerando_3 import generar_considerando_3
 from funciones_formato_2 import obtener_datos_formato_2
+from obtener_datos_informe_facturacion import obtener_datos_informe_facturacion
 from sharepoint import probar_conexion
 
 app = FastAPI()
@@ -170,3 +171,20 @@ def generar_considerando_3_api():
     return {
         "considerando_3": considerando_3
     }
+
+@app.post("/analizar_informe_facturacion")
+async def analizar_informe_facturacion(
+    archivo: UploadFile = File(...)
+):
+
+    contenido = await archivo.read()
+
+    imagenes = convertir_pdf_a_imagenes(
+        contenido
+    )
+
+    datos_informe = obtener_datos_informe_facturacion(
+        imagenes[0]
+    )
+
+    return datos_informe
