@@ -56,8 +56,6 @@ def buscar_paginas_documentos(contenido_pdf):
     paginas = {
         "formato_2": None,
         "formato_3": None,
-        "informe_tecnico": None,
-        "informe_facturacion": None
     }
 
     for numero, pagina in enumerate(pdf):
@@ -69,12 +67,6 @@ def buscar_paginas_documentos(contenido_pdf):
 
         if paginas["formato_3"] is None and "FORMATO 3" in texto:
             paginas["formato_3"] = numero
-
-        if paginas["informe_tecnico"] is None and "INFORME TÉCNICO COMERCIAL" in texto:
-            paginas["informe_tecnico"] = numero
-
-        if paginas["informe_facturacion"] is None and "INFORME DE FACTURACIÓN" in texto:
-            paginas["informe_facturacion"] = numero
 
     pdf.close()
 
