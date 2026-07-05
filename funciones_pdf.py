@@ -48,6 +48,18 @@ def extraer_texto_pdf(contenido_pdf):
 
     return texto
 
+def extraer_texto_pagina(contenido_pdf, numero_pagina):
+
+    pdf = fitz.open(
+        stream=contenido_pdf,
+        filetype="pdf"
+    )
+
+    texto = pdf[numero_pagina].get_text()
+
+    pdf.close()
+
+    return texto
 
 def buscar_paginas_documentos(contenido_pdf):
 
