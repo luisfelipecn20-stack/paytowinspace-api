@@ -5,7 +5,11 @@ def contar_paginas_pdf(contenido_pdf):
 
     pdf = fitz.open(stream=contenido_pdf, filetype="pdf")
 
-    return len(pdf)
+    total_paginas = len(pdf)
+
+    pdf.close()
+
+    return total_paginas
 
 
 def convertir_pdf_a_imagenes(contenido_pdf):
@@ -22,7 +26,10 @@ def convertir_pdf_a_imagenes(contenido_pdf):
 
         imagenes.append(imagen)
 
+    pdf.close()
+
     return imagenes
+
 
 def extraer_texto_pdf(contenido_pdf):
 
@@ -37,4 +44,38 @@ def extraer_texto_pdf(contenido_pdf):
 
         texto += pagina.get_text()
 
+    pdf.close()
+
     return texto
+
+
+def buscar_paginas_documentos(contenido_pdf):
+
+    pdf = fitz.open(stream=contenido_pdf, filetype="pdf")
+
+    paginas = {
+        "formato_2": None,
+        "formato_3": None,
+        "informe_tecnico": None,
+        "informe_facturacion": None
+    }
+
+    for numero, pagina in enumerate(pdf):
+
+        texto = pagina.get_text().upper()
+
+        if paginas["formato_2"] is None and "FORMATO 2" in texto:
+            paginas["formato_2"] = numero
+
+        if paginas["formato_3"] is None and "FORMATO 3" in texto:
+            paginas["formato_3"] = numero
+
+        if paginas["informe_tecnico"] is None and "INFORME TÉCNICO COMERCIAL" in texto:
+            paginas["informe_tecnico"] = numero
+
+        if paginas["informe_facturacion"] is None and "INFORME DE FACTURACIÓN" in texto:
+            paginas["informe_facturacion"] = numero
+
+    pdf.close()
+
+    return paginas
