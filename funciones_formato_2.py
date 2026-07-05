@@ -1,14 +1,14 @@
 # funciones_formato_2.py
-import json
 
-from funciones_pdf import convertir_pdf_a_imagenes
-from funciones_vision import analizar_imagen
-from prompt_formato_2 import PROMPT_FORMATO_2
+from funciones_pdf import (
+    buscar_paginas_documentos,
+    extraer_texto_pagina
+)
 
 def obtener_datos_formato_2(pdf_formato_2):
 
     datos_formato_2 = {
-        
+
         # Identificación del expediente
         "re": "",
         "niss": "",
@@ -39,32 +39,40 @@ def obtener_datos_formato_2(pdf_formato_2):
 
     }
 
-    imagenes = convertir_pdf_a_imagenes(
+    paginas = buscar_paginas_documentos(
         pdf_formato_2
     )
 
-    resultado = analizar_imagen(
-        imagenes[:8],
-        PROMPT_FORMATO_2
-    )    
+    if paginas["formato_2"] is None:
+        return {
+            "error": "No se encontró el Formato 2 en el PDF."
+        }
 
-    print(resultado)
+    if paginas["formato_3"] is None:
+        return {
+            "error": "No se encontró el Formato 3 en el PDF."
+        }
+
+    print("Páginas encontradas:", paginas)
+
+    texto_formato_2 = extraer_texto_pagina(
+        pdf_formato_2,
+        paginas["formato_2"]
+    )
+
+    texto_formato_3 = extraer_texto_pagina(
+        pdf_formato_2,
+        paginas["formato_3"]
+    )
+
+    print("========== FORMATO 2 ==========")
+    print(texto_formato_2)
+
+    print("========== FORMATO 3 ==========")
+    print(texto_formato_3)
 
     return {
-        "respuesta_gpt": resultado
+        "paginas": paginas,
+        "texto_formato_2": texto_formato_2,
+        "texto_formato_3": texto_formato_3
     }
-
-def tiene_correo(correo_electronico):
-
-    if correo_electronico.strip() == "":
-        return "NO"
-
-    return "SI"
-
-
-def solicita_contraste(opcion):
-
-    if opcion.strip().upper() == "SI":
-        return "SI"
-
-    return "NO"
