@@ -230,7 +230,8 @@ def obtener_datos(texto_formato_2, texto_formato_3):
 
         # Reclamo
         "mes_reclamado": extraer_mes_reclamado(texto_formato_2),
-        "m3_reclamado": "",
+        "mes_reclamado_formato_3": datos_formato_3["mes_reclamado_formato_3"],
+        "m3_reclamado": datos_formato_3["m3_reclamado"],
 
         # Audiencia
         "canal_atencion": "",
