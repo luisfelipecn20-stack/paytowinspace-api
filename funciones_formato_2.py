@@ -35,10 +35,21 @@ def extraer_niss(texto):
 
 
 def extraer_reclamante(texto):
-    return buscar(
-        r"Apellido Paterno\s+Apellido Materno\s+Nombres\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+X",
-        texto
+
+    coincidencia = re.search(
+        r"^\s*([A-ZÁÉÍÓÚÑ]+)\s+([A-ZÁÉÍÓÚÑ]+)\s+NOMBRE DEL SOLICITANTE.*?RAZÓN SOCIAL\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+\d{2}/\d{2}/\d{4}",
+        texto,
+        re.IGNORECASE | re.DOTALL
     )
+
+    if coincidencia:
+        apellido_paterno = coincidencia.group(1).strip()
+        apellido_materno = coincidencia.group(2).strip()
+        nombres = coincidencia.group(3).strip()
+
+        return f"{apellido_paterno} {apellido_materno} {nombres}"
+
+    return ""
 
 
 def obtener_datos(texto_formato_2, texto_formato_3):
