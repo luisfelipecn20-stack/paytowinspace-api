@@ -196,29 +196,39 @@ def extraer_datos_formato_3(texto):
         "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
     ]
 
-    mes_reclamado_formato_3 = ""
-    m3_reclamado = ""
+    recibos = []
 
-    # Buscar mes y año reclamado
     for i, linea in enumerate(lineas):
+
         if linea.upper() in meses:
-            if i + 1 < len(lineas) and re.match(r"^\d{4}$", lineas[i + 1]):
-                mes_reclamado_formato_3 = f"{linea.upper()} {lineas[i + 1]}"
-                break
 
-    # Buscar m3 en el bloque superior:
-    # Lectura / Importe / Volumen
-    for i, linea in enumerate(lineas):
-        if linea.upper() == "LECTURA":
-            if i + 2 < len(lineas):
-                posible_m3 = lineas[i + 2]
-                if re.match(r"^\d+$", posible_m3):
-                    m3_reclamado = posible_m3
+            if i + 1 < len(lineas) and re.match(r"^\d{4}$", lineas[i + 1]):
+
+                mes = linea.upper()
+                anio = lineas[i + 1]
+
+                m3 = ""
+
+                # Busca hacia atrás el m3 más cercano antes del mes
+                for j in range(i - 1, max(i - 8, -1), -1):
+                    if re.match(r"^\d+$", lineas[j]):
+                        m3 = lineas[j]
+                        break
+
+                recibos.append({
+                    "mes": f"{mes} {anio}",
+                    "m3": m3
+                })
+
+                if len(recibos) == 3:
                     break
 
+    primer_recibo = recibos[0] if recibos else {"mes": "", "m3": ""}
+
     return {
-        "mes_reclamado_formato_3": mes_reclamado_formato_3,
-        "m3_reclamado": m3_reclamado
+        "mes_reclamado_formato_3": primer_recibo["mes"],
+        "m3_reclamado": primer_recibo["m3"],
+        "recibos_formato_3": recibos
     }
 
 def obtener_datos(texto_formato_2, texto_formato_3):
@@ -248,6 +258,7 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "mes_reclamado": extraer_mes_reclamado(texto_formato_2),
         "mes_reclamado_formato_3": datos_formato_3["mes_reclamado_formato_3"],
         "m3_reclamado": datos_formato_3["m3_reclamado"],
+        "recibos_formato_3": datos_formato_3["recibos_formato_3"],
 
         # Audiencia
         "canal_atencion": "",
