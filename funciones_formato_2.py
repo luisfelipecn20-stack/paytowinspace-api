@@ -191,19 +191,16 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "correo_electronico": extraer_correo(texto_formato_2),
 
         # Reclamo
-        "tipo_reclamo": extraer_tipo_reclamo(texto_formato_2),
-
-        # Formato 3
-        "mes_reclamado": "",
+        "mes_reclamado": extraer_mes_reclamado(texto_formato_2),
         "m3_reclamado": "",
 
         # Audiencia
         "canal_atencion": "",
-        "fecha_audiencia": "",
+        "fecha_audiencia": extraer_fecha_audiencia(texto_formato_2),
 
         # Contraste
-        "solicita_contraste": "",
-
+        "solicita_contraste": extraer_solicita_contraste(texto_formato_2),
+    
         # Temporal (para depuración)
         "texto_formato_2": texto_formato_2,
         "texto_formato_3": texto_formato_3
