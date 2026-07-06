@@ -184,25 +184,41 @@ def extraer_mes_reclamado(texto):
 
 def extraer_datos_formato_3(texto):
 
-    coincidencia = re.search(
-        r"(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SETIEMBRE|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)\s+(\d{4}).*?Lectura\s+\d+(?:\.\d+)?\s+(\d+)",
-        texto,
-        re.IGNORECASE | re.DOTALL
-    )
+    lineas = [
+        linea.strip()
+        for linea in texto.splitlines()
+        if linea.strip()
+    ]
 
-    if coincidencia:
-        mes = coincidencia.group(1).upper()
-        anio = coincidencia.group(2)
-        m3 = coincidencia.group(3)
+    meses = [
+        "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
+        "JULIO", "AGOSTO", "SETIEMBRE", "SEPTIEMBRE",
+        "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
+    ]
 
-        return {
-            "mes_reclamado_formato_3": f"{mes} {anio}",
-            "m3_reclamado": m3
-        }
+    mes_reclamado_formato_3 = ""
+    m3_reclamado = ""
+
+    # Buscar mes y año reclamado
+    for i, linea in enumerate(lineas):
+        if linea.upper() in meses:
+            if i + 1 < len(lineas) and re.match(r"^\d{4}$", lineas[i + 1]):
+                mes_reclamado_formato_3 = f"{linea.upper()} {lineas[i + 1]}"
+                break
+
+    # Buscar m3 en el bloque superior:
+    # Lectura / Importe / Volumen
+    for i, linea in enumerate(lineas):
+        if linea.upper() == "LECTURA":
+            if i + 2 < len(lineas):
+                posible_m3 = lineas[i + 2]
+                if re.match(r"^\d+$", posible_m3):
+                    m3_reclamado = posible_m3
+                    break
 
     return {
-        "mes_reclamado_formato_3": "",
-        "m3_reclamado": ""
+        "mes_reclamado_formato_3": mes_reclamado_formato_3,
+        "m3_reclamado": m3_reclamado
     }
 
 def obtener_datos(texto_formato_2, texto_formato_3):
