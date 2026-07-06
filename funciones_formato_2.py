@@ -110,6 +110,15 @@ def extraer_tiene_correo(texto):
 
     return "NO"
 
+def extraer_tipo_reclamo(texto):
+
+    tipo = buscar(
+        r"TIPO DE RECLAMO.*?(Consumo Medido)",
+        texto
+    )
+
+    return tipo
+
 def obtener_datos(texto_formato_2, texto_formato_3):
 
     datos = {
@@ -131,7 +140,7 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "correo_electronico": extraer_correo(texto_formato_2),
 
         # Reclamo
-        "tipo_reclamo": "",
+        "tipo_reclamo": extraer_tipo_reclamo(texto_formato_2),
 
         # Formato 3
         "mes_reclamado": "",
