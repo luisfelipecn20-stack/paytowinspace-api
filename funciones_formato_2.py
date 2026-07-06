@@ -76,7 +76,7 @@ def extraer_direccion_suministro(texto):
 def extraer_direccion_procesal(texto):
 
     bloque = buscar(
-        r"DOMICILIO PROCESAL\s+(.*?)\s+SUCURSAL/ZONAL",
+        r"DOMICILIO PROCESAL\s+(.*?)\s+O\. C\. CALLAO",
         texto
     )
 
