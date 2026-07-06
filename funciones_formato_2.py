@@ -73,6 +73,26 @@ def extraer_direccion_suministro(texto):
 
     return direccion
 
+def extraer_direccion_procesal(texto):
+
+    bloque = buscar(
+        r"DOMICILIO PROCESAL\s+(.*?)\s+SUCURSAL/ZONAL",
+        texto
+    )
+
+    if not bloque:
+        return ""
+
+    lineas = [
+        linea.strip()
+        for linea in bloque.splitlines()
+        if linea.strip()
+    ]
+
+    direccion = limpiar_espacios(" ".join(lineas))
+
+    return direccion
+
 def obtener_datos(texto_formato_2, texto_formato_3):
 
     datos = {
@@ -87,7 +107,7 @@ def obtener_datos(texto_formato_2, texto_formato_3):
 
         # Direcciones
         "direccion_suministro": extraer_direccion_suministro(texto_formato_2),
-        "direccion_procesal": "",
+        "direccion_procesal": extraer_direccion_procesal(texto_formato_2),
 
         # Correo
         "tiene_correo": "",
