@@ -1,5 +1,3 @@
-# funciones_formato_2.py
-
 from funciones_pdf import extraer_texto_pagina
 import re
 
@@ -18,26 +16,42 @@ def buscar(patron, texto):
     return ""
 
 
+# ==========================
+# EXTRACTORES
+# ==========================
+
+def extraer_re(texto):
+    return buscar(
+        r"(RE\d+)",
+        texto
+    )
+
+
+def extraer_niss(texto):
+    return buscar(
+        r"N° DE SUMINISTRO\s+CÓDIGO DE RECLAMO N°:\s+RE\d+\s+(\d+)",
+        texto
+    )
+
+
+def extraer_reclamante(texto):
+    return buscar(
+        r"Apellido Paterno\s+Apellido Materno\s+Nombres\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+X",
+        texto
+    )
+
+
 def obtener_datos(texto_formato_2, texto_formato_3):
 
     datos = {
 
         # Identificación
-        "re": buscar(
-            r"(RE\d+)",
-            texto_formato_2
-        ),
+        "re": extraer_re(texto_formato_2),
 
-        "niss": buscar(
-            r"N° DE SUMINISTRO\s+CÓDIGO DE RECLAMO N°:\s+RE\d+\s+(\d+)",
-            texto_formato_2
-        ),
+        "niss": extraer_niss(texto_formato_2),
 
         # Usuario
-        "reclamante": buscar(
-            r"Apellido Paterno\s+Apellido Materno\s+Nombres\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+X",
-            texto_formato_2
-        ),
+        "reclamante": extraer_reclamante(texto_formato_2),
 
         # Direcciones
         "direccion_suministro": "",
