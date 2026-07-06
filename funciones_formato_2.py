@@ -182,7 +182,32 @@ def extraer_mes_reclamado(texto):
 
     return ""
 
+def extraer_datos_formato_3(texto):
+
+    coincidencia = re.search(
+        r"(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SETIEMBRE|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)\s+(\d{4}).*?Lectura\s+\d+(?:\.\d+)?\s+(\d+)",
+        texto,
+        re.IGNORECASE | re.DOTALL
+    )
+
+    if coincidencia:
+        mes = coincidencia.group(1).upper()
+        anio = coincidencia.group(2)
+        m3 = coincidencia.group(3)
+
+        return {
+            "mes_reclamado_formato_3": f"{mes} {anio}",
+            "m3_reclamado": m3
+        }
+
+    return {
+        "mes_reclamado_formato_3": "",
+        "m3_reclamado": ""
+    }
+
 def obtener_datos(texto_formato_2, texto_formato_3):
+    
+    datos_formato_3 = extraer_datos_formato_3(texto_formato_3)
 
     datos = {
 
