@@ -1,7 +1,6 @@
 from funciones_pdf import extraer_texto_pagina
 import re
 
-
 def buscar(patron, texto):
 
     coincidencia = re.search(
@@ -14,7 +13,6 @@ def buscar(patron, texto):
         return coincidencia.group(1).strip()
 
     return ""
-
 
 # ==========================
 # EXTRACTORES
@@ -51,6 +49,29 @@ def extraer_reclamante(texto):
 
     return ""
 
+def limpiar_espacios(texto):
+    return re.sub(r"\s+", " ", texto).strip()
+
+
+def extraer_direccion_suministro(texto):
+
+    bloque = buscar(
+        r"UBICACIÓN DEL PREDIO\s+(.*?)\s+DOMICILIO PROCESAL",
+        texto
+    )
+
+    if not bloque:
+        return ""
+
+    lineas = [
+        linea.strip()
+        for linea in bloque.splitlines()
+        if linea.strip()
+    ]
+
+    direccion = limpiar_espacios(" ".join(lineas))
+
+    return direccion
 
 def obtener_datos(texto_formato_2, texto_formato_3):
 
@@ -65,7 +86,7 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "reclamante": extraer_reclamante(texto_formato_2),
 
         # Direcciones
-        "direccion_suministro": "",
+        "direccion_suministro": extraer_direccion_suministro(texto_formato_2),
         "direccion_procesal": "",
 
         # Correo
