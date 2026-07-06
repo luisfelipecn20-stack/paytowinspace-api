@@ -119,6 +119,15 @@ def extraer_tipo_reclamo(texto):
 
     return tipo
 
+def extraer_fecha_reclamo(texto):
+
+    fecha = buscar(
+        r"RAZÓN SOCIAL.*?(\d{2}/\d{2}/\d{4})",
+        texto
+    )
+
+    return fecha
+
 def extraer_fecha_audiencia(texto):
 
     coincidencia = re.search(
@@ -184,7 +193,8 @@ def obtener_datos(texto_formato_2, texto_formato_3):
 
         # Usuario
         "reclamante": extraer_reclamante(texto_formato_2),
-
+        "fecha_reclamo": extraer_fecha_reclamo(texto_formato_2),
+        
         # Direcciones
         "direccion_suministro": extraer_direccion_suministro(texto_formato_2),
         "direccion_procesal": extraer_direccion_procesal(texto_formato_2),
