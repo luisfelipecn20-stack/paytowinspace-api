@@ -121,13 +121,16 @@ def extraer_tipo_reclamo(texto):
 
 def extraer_fecha_audiencia(texto):
 
-    fecha = buscar(
-        r"CITACIÓN A REUNIÓN\s+FECHA\s+(\d{2}/\d{2}/\d{4})",
-        texto
+    coincidencia = re.search(
+        r"FECHA\s+(\d{2}/\d{2}/\d{4})\s+CITACI[ÓO]N\s+A\s+REUNI[ÓO]N",
+        texto,
+        re.IGNORECASE | re.DOTALL
     )
 
-    return fecha
+    if coincidencia:
+        return coincidencia.group(1).strip()
 
+    return ""
 
 def extraer_solicita_contraste(texto):
 
