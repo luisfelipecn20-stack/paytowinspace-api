@@ -119,6 +119,57 @@ def extraer_tipo_reclamo(texto):
 
     return tipo
 
+def extraer_fecha_audiencia(texto):
+
+    fecha = buscar(
+        r"CITACIÓN A REUNIÓN\s+FECHA\s+(\d{2}/\d{2}/\d{4})",
+        texto
+    )
+
+    return fecha
+
+
+def extraer_solicita_contraste(texto):
+
+    bloque = buscar(
+        r"Solicito la realización de la prueba de contrastación.*?(Si\s+No|NO\s+SI|SI\s+NO)",
+        texto
+    )
+
+    if not bloque:
+        return ""
+
+    if re.search(r"No\s+X|X\s+No", texto, re.IGNORECASE):
+        return "NO"
+
+    if re.search(r"Si\s+X|X\s+Si", texto, re.IGNORECASE):
+        return "SI"
+
+    return ""
+
+
+def extraer_mes_reclamado(texto):
+
+    coincidencia = re.search(
+        r"recibo de\s+([A-ZÁÉÍÓÚÑ]+)\s+(\d{4})",
+        texto,
+        re.IGNORECASE
+    )
+
+    if coincidencia:
+        return f"{coincidencia.group(1).upper()} {coincidencia.group(2)}"
+
+    coincidencia = re.search(
+        r"mes de\s+([A-ZÁÉÍÓÚÑ]+)\s+del\s+(\d{4})",
+        texto,
+        re.IGNORECASE
+    )
+
+    if coincidencia:
+        return f"{coincidencia.group(1).upper()} {coincidencia.group(2)}"
+
+    return ""
+
 def obtener_datos(texto_formato_2, texto_formato_3):
 
     datos = {
