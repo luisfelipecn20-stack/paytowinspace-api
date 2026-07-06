@@ -93,6 +93,23 @@ def extraer_direccion_procesal(texto):
 
     return direccion
 
+def extraer_correo(texto):
+
+    correo = buscar(
+        r"([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})",
+        texto
+    )
+
+    return correo
+
+
+def extraer_tiene_correo(texto):
+
+    if extraer_correo(texto):
+        return "SI"
+
+    return "NO"
+
 def obtener_datos(texto_formato_2, texto_formato_3):
 
     datos = {
@@ -110,8 +127,8 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "direccion_procesal": extraer_direccion_procesal(texto_formato_2),
 
         # Correo
-        "tiene_correo": "",
-        "correo_electronico": "",
+        "tiene_correo": extraer_tiene_correo(texto_formato_2),
+        "correo_electronico": extraer_correo(texto_formato_2),
 
         # Reclamo
         "tipo_reclamo": "",
