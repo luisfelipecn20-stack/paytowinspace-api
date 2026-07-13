@@ -1,4 +1,7 @@
-from funciones_pdf import extraer_texto_pagina
+from funciones_pdf import (
+    extraer_texto_pagina,
+    extraer_contraste_desde_imagen
+)
 import re
 
 def buscar(patron, texto):
@@ -400,6 +403,15 @@ def obtener_datos_formato_2(pdf_formato_2):
         texto_formato_2,
         texto_formato_3
     )
+
+    # Si el texto no permitió reconocer la opción,
+    # se hace una lectura visual específica.
+    if not datos["solicita_contraste"]:
+        datos["solicita_contraste"] = (
+            extraer_contraste_desde_imagen(
+                pdf_formato_2
+            )
+        )
 
     print(datos)
 
