@@ -12,7 +12,7 @@ def analizar_imagen(imagenes_png, prompt_sistema):
     contenido = [
         {
             "type": "text",
-            "text": "Analiza las siguientes imágenes."
+            "text": "Transcribe literalmente todo el texto visible de las siguientes imágenes."
         }
     ]
 
