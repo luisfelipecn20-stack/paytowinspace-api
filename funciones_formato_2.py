@@ -1,6 +1,6 @@
 from funciones_pdf import (
     extraer_texto_pagina,
-    extraer_contraste_desde_imagen
+    extraer_campos_visuales_formato_2
 )
 import re
 
@@ -386,7 +386,6 @@ def obtener_datos(texto_formato_2, texto_formato_3):
 
     return datos
 
-
 def obtener_datos_formato_2(pdf_formato_2):
 
     texto_formato_2 = extraer_texto_pagina(
@@ -404,14 +403,28 @@ def obtener_datos_formato_2(pdf_formato_2):
         texto_formato_3
     )
 
-    # Si el texto no permitió reconocer la opción,
-    # se hace una lectura visual específica.
-    if not datos["solicita_contraste"]:
-        datos["solicita_contraste"] = (
-            extraer_contraste_desde_imagen(
-                pdf_formato_2
-            )
+    # Solo usa respaldo visual cuando falta
+    # el reclamante o la respuesta de contraste.
+    if (
+        not datos["reclamante"]
+        or not datos["solicita_contraste"]
+    ):
+
+        campos_visuales = extraer_campos_visuales_formato_2(
+            pdf_formato_2
         )
+
+        if not datos["reclamante"]:
+            datos["reclamante"] = campos_visuales.get(
+                "reclamante",
+                ""
+            )
+
+        if not datos["solicita_contraste"]:
+            datos["solicita_contraste"] = campos_visuales.get(
+                "solicita_contraste",
+                ""
+            )
 
     print(datos)
 
