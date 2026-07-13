@@ -119,6 +119,53 @@ def extraer_tipo_reclamo(texto):
 
     return tipo
 
+def extraer_canal_atencion(texto):
+
+    texto_mayuscula = texto.upper()
+
+    # Prioridad 1: campo de modalidad del Formato 2
+    coincidencia = re.search(
+        r"MODALIDAD DE ATENCI[ÓO]N DE LA SOLICITUD"
+        r".{0,180}?"
+        r"(POR\s+TEL[EÉ]FONO|TELEF[ÓO]NICO|VIRTUAL|WEB|PRESENCIAL)",
+        texto_mayuscula,
+        re.IGNORECASE | re.DOTALL
+    )
+
+    if coincidencia:
+        modalidad = coincidencia.group(1).upper()
+
+        if re.search(r"TEL[EÉ]FONO|TELEF[ÓO]NICO", modalidad):
+            return "TELEFÓNICO"
+
+        if modalidad in ["VIRTUAL", "WEB"]:
+            return "VIRTUAL"
+
+        if modalidad == "PRESENCIAL":
+            return "PRESENCIAL"
+
+    # Prioridad 2: fundamento del reclamo
+    coincidencia = re.search(
+        r"FUNDAMENTO DEL RECLAMO.*?"
+        r"\b(VIRTUAL|WEB|TELEF[ÓO]NICO|PRESENCIAL)\b",
+        texto_mayuscula,
+        re.IGNORECASE | re.DOTALL
+    )
+
+    if coincidencia:
+        modalidad = coincidencia.group(1).upper()
+
+        if modalidad in ["VIRTUAL", "WEB"]:
+            return "VIRTUAL"
+
+        if re.search(r"TELEF[ÓO]NICO", modalidad):
+            return "TELEFÓNICO"
+
+        if modalidad == "PRESENCIAL":
+            return "PRESENCIAL"
+
+    return ""
+
 def extraer_fecha_reclamo(texto):
 
     fecha = buscar(
@@ -261,7 +308,7 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "recibos_formato_3": datos_formato_3["recibos_formato_3"],
 
         # Audiencia
-        "canal_atencion": "",
+        "canal_atencion": extraer_canal_atencion(texto_formato_2),
         "fecha_audiencia": extraer_fecha_audiencia(texto_formato_2),
 
         # Contraste
@@ -285,7 +332,7 @@ def obtener_datos_formato_2(pdf_formato_2):
 
     texto_formato_3 = extraer_texto_pagina(
         pdf_formato_2,
-        2
+        3
     )
 
     datos = obtener_datos(
