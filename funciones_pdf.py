@@ -1,5 +1,6 @@
 import re
 import fitz
+import json
 
 from funciones_vision import analizar_imagen
 
@@ -159,8 +160,18 @@ def extraer_texto_pagina(
 
         pdf.close()
 
+def limpiar_respuesta_visual(valor):
 
-def extraer_contraste_desde_imagen(contenido_pdf):
+    if not isinstance(valor, str):
+        return ""
+
+    return re.sub(
+        r"\s+",
+        " ",
+        valor
+    ).strip().upper()
+
+def extraer_campos_visuales_formato_2(contenido_pdf):
 
     pdf = fitz.open(
         stream=contenido_pdf,
@@ -170,9 +181,11 @@ def extraer_contraste_desde_imagen(contenido_pdf):
     try:
         pagina = pdf[0]
 
-        # Renderiza la página 1 a buena resolución.
         escala = 300 / 72
-        matriz = fitz.Matrix(escala, escala)
+        matriz = fitz.Matrix(
+            escala,
+            escala
+        )
 
         pix = pagina.get_pixmap(
             matrix=matriz,
@@ -182,22 +195,34 @@ def extraer_contraste_desde_imagen(contenido_pdf):
         imagen = pix.tobytes("png")
 
         prompt = """
-Observa únicamente la sección:
+Observa únicamente el Formato 2 de la imagen.
 
-"DECLARACIÓN DEL RECLAMANTE
-(aplicable a reclamos por consumo medido)
-Solicito la realización de la prueba de contrastación..."
+Extrae solo estos dos campos:
 
-Determina qué opción está marcada con una X:
+1. reclamante:
+   Une Apellido Paterno, Apellido Materno y Nombres,
+   exactamente como aparecen en el documento.
+   No incluyas etiquetas.
 
-- Responde SI si está marcada la opción Sí.
-- Responde NO si está marcada la opción No.
-- Responde VACIO si ninguna opción está marcada o no puede determinarse.
+2. solicita_contraste:
+   Revisa la sección:
+   "DECLARACIÓN DEL RECLAMANTE
+   (aplicable a reclamos por consumo medido)
+   Solicito la realización de la prueba de contrastación..."
 
-Devuelve exclusivamente una de estas palabras:
-SI
-NO
-VACIO
+   Devuelve:
+   - "SI" si está marcada la opción Sí.
+   - "NO" si está marcada la opción No.
+   - "" si no puede determinarse.
+
+Devuelve exclusivamente JSON válido con esta estructura:
+
+{
+  "reclamante": "",
+  "solicita_contraste": ""
+}
+
+No agregues explicaciones ni Markdown.
 """
 
         respuesta = analizar_imagen(
@@ -206,20 +231,55 @@ VACIO
         )
 
         if not isinstance(respuesta, str):
-            return ""
+            return {
+                "reclamante": "",
+                "solicita_contraste": ""
+            }
 
-        respuesta = respuesta.strip().upper()
+        respuesta = respuesta.strip()
 
-        if respuesta == "SI":
-            return "SI"
+        if respuesta.startswith("```"):
+            respuesta = re.sub(
+                r"^```(?:json)?\s*|\s*```$",
+                "",
+                respuesta,
+                flags=re.IGNORECASE
+            ).strip()
 
-        if respuesta == "NO":
-            return "NO"
+        try:
+            datos = json.loads(respuesta)
+        except json.JSONDecodeError:
+            return {
+                "reclamante": "",
+                "solicita_contraste": ""
+            }
 
-        return ""
+        reclamante = limpiar_respuesta_visual(
+            datos.get("reclamante", "")
+        )
+
+        solicita_contraste = (
+            str(
+                datos.get(
+                    "solicita_contraste",
+                    ""
+                )
+            )
+            .strip()
+            .upper()
+        )
+
+        if solicita_contraste not in ["SI", "NO"]:
+            solicita_contraste = ""
+
+        return {
+            "reclamante": reclamante,
+            "solicita_contraste": solicita_contraste
+        }
 
     finally:
         pdf.close()
+
 
 def buscar_paginas_documentos(contenido_pdf):
 
