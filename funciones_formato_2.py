@@ -14,6 +14,9 @@ def buscar(patron, texto):
 
     return ""
 
+def limpiar_espacios(texto):
+    return re.sub(r"\s+", " ", texto).strip()
+
 # ==========================
 # EXTRACTORES
 # ==========================
@@ -24,18 +27,41 @@ def extraer_re(texto):
         texto
     )
 
+def extraer_re_validado(texto_formato_2, texto_formato_3):
+
+    re_formato_2 = extraer_re(texto_formato_2)
+    re_formato_3 = extraer_re(texto_formato_3)
+
+    if re_formato_3:
+        return re_formato_3
+
+    return re_formato_2
 
 def extraer_niss(texto):
-    return buscar(
-        r"N° DE SUMINISTRO\s+CÓDIGO DE RECLAMO N°:\s+RE\d+\s+(\d+)",
-        texto
+
+    coincidencia = re.search(
+        r"N[°º]?\s*DE\s+SUMINISTRO\s+(\d{6,10})",
+        texto,
+        re.IGNORECASE
     )
+
+    if coincidencia:
+        return coincidencia.group(1).strip()
+
+    return ""
 
 
 def extraer_reclamante(texto):
 
     coincidencia = re.search(
-        r"^\s*([A-ZÁÉÍÓÚÑ]+)\s+([A-ZÁÉÍÓÚÑ]+)\s+NOMBRE DEL SOLICITANTE.*?RAZÓN SOCIAL\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+\d{2}/\d{2}/\d{4}",
+        r"NOMBRE DEL SOLICITANTE O REPRESENTANTE"
+        r".*?"
+        r"Apellido Paterno\s+([A-ZÁÉÍÓÚÑ]+)"
+        r".*?"
+        r"Apellido Materno\s*([A-ZÁÉÍÓÚÑ]*)"
+        r".*?"
+        r"Nombres\s+([A-ZÁÉÍÓÚÑ\s]+?)"
+        r"\s+N[ÚU]MERO DE DOCUMENTO",
         texto,
         re.IGNORECASE | re.DOTALL
     )
@@ -43,14 +69,23 @@ def extraer_reclamante(texto):
     if coincidencia:
         apellido_paterno = coincidencia.group(1).strip()
         apellido_materno = coincidencia.group(2).strip()
-        nombres = coincidencia.group(3).strip()
+        nombres = limpiar_espacios(
+            coincidencia.group(3)
+        )
 
-        return f"{apellido_paterno} {apellido_materno} {nombres}"
+        partes = [
+            apellido_paterno,
+            apellido_materno,
+            nombres
+        ]
+
+        return " ".join(
+            parte
+            for parte in partes
+            if parte
+        )
 
     return ""
-
-def limpiar_espacios(texto):
-    return re.sub(r"\s+", " ", texto).strip()
 
 
 def extraer_direccion_suministro(texto):
@@ -121,64 +156,83 @@ def extraer_tipo_reclamo(texto):
 
 def extraer_canal_atencion(texto):
 
-    texto_mayuscula = texto.upper()
-
-    # Prioridad 1: campo de modalidad del Formato 2
     coincidencia = re.search(
         r"MODALIDAD DE ATENCI[ÓO]N DE LA SOLICITUD"
-        r".{0,180}?"
-        r"(POR\s+TEL[EÉ]FONO|TELEF[ÓO]NICO|VIRTUAL|WEB|PRESENCIAL)",
-        texto_mayuscula,
-        re.IGNORECASE | re.DOTALL
+        r"\s*\([^)]*\)\s*"
+        r"([^\n]+)",
+        texto,
+        re.IGNORECASE
     )
 
-    if coincidencia:
-        modalidad = coincidencia.group(1).upper()
-
-        if re.search(r"TEL[EÉ]FONO|TELEF[ÓO]NICO", modalidad):
-            return "TELEFÓNICO"
-
-        if modalidad in ["VIRTUAL", "WEB"]:
-            return "VIRTUAL"
-
-        if modalidad == "PRESENCIAL":
-            return "PRESENCIAL"
-
-    # Prioridad 2: fundamento del reclamo
-    coincidencia = re.search(
-        r"FUNDAMENTO DEL RECLAMO.*?"
-        r"\b(VIRTUAL|WEB|TELEF[ÓO]NICO|PRESENCIAL)\b",
-        texto_mayuscula,
-        re.IGNORECASE | re.DOTALL
-    )
+    modalidad = ""
 
     if coincidencia:
-        modalidad = coincidencia.group(1).upper()
+        modalidad = coincidencia.group(1).strip().upper()
 
-        if modalidad in ["VIRTUAL", "WEB"]:
-            return "VIRTUAL"
+    if (
+        "EN PERSONA" in modalidad
+        or "VERBAL" in modalidad
+        or "PRESENCIAL" in modalidad
+    ):
+        return "PRESENCIAL"
 
-        if re.search(r"TELEF[ÓO]NICO", modalidad):
-            return "TELEFÓNICO"
+    if (
+        "POR TELEFONO" in modalidad
+        or "POR TELÉFONO" in modalidad
+        or "TELEFONICO" in modalidad
+        or "TELEFÓNICO" in modalidad
+    ):
+        return "TELEFÓNICO"
 
-        if modalidad == "PRESENCIAL":
-            return "PRESENCIAL"
+    if "VIRTUAL" in modalidad or "WEB" in modalidad:
+        return "VIRTUAL"
+
+    # Respaldo usando solo el fundamento.
+    fundamento = buscar(
+        r"FUNDAMENTO DEL RECLAMO.*?(.*?)RELACIÓN DE PRUEBAS",
+        texto
+    ).upper()
+
+    if "PRESENCIAL" in fundamento:
+        return "PRESENCIAL"
+
+    if "VIRTUAL" in fundamento or "WEB" in fundamento:
+        return "VIRTUAL"
+
+    if "TELEFON" in fundamento:
+        return "TELEFÓNICO"
 
     return ""
 
 def extraer_fecha_reclamo(texto):
 
-    fecha = buscar(
-        r"RAZÓN SOCIAL.*?(\d{2}/\d{2}/\d{4})",
+    # La fecha de presentación aparece al pie del Formato 2.
+    coincidencia = re.search(
+        r"(\d{2}/\d{2}/\d{4})\s+Fecha\s*$",
+        texto,
+        re.IGNORECASE | re.DOTALL
+    )
+
+    if coincidencia:
+        return coincidencia.group(1).strip()
+
+    # Respaldo: toma la última fecha encontrada.
+    fechas = re.findall(
+        r"\b\d{2}/\d{2}/\d{4}\b",
         texto
     )
 
-    return fecha
+    if fechas:
+        return fechas[-1]
+
+    return ""
 
 def extraer_fecha_audiencia(texto):
 
     coincidencia = re.search(
-        r"FECHA\s+(\d{2}/\d{2}/\d{4})\s+CITACI[ÓO]N\s+A\s+REUNI[ÓO]N",
+        r"CITACI[ÓO]N\s+A\s+REUNI[ÓO]N"
+        r".{0,80}?"
+        r"FECHA\s+(\d{2}/\d{2}/\d{4})",
         texto,
         re.IGNORECASE | re.DOTALL
     )
@@ -210,72 +264,63 @@ def extraer_solicita_contraste(texto):
 def extraer_mes_reclamado(texto):
 
     coincidencia = re.search(
-        r"recibo de\s+([A-ZÁÉÍÓÚÑ]+)\s+(\d{4})",
+        r"(?:mes|recibo)\s+de\s+"
+        r"([A-ZÁÉÍÓÚÑ]+)\s+"
+        r"(?:del\s+)?"
+        r"(\d{4})",
         texto,
         re.IGNORECASE
     )
 
     if coincidencia:
-        return f"{coincidencia.group(1).upper()} {coincidencia.group(2)}"
+        mes = coincidencia.group(1).upper()
+        anio = coincidencia.group(2)
 
-    coincidencia = re.search(
-        r"mes de\s+([A-ZÁÉÍÓÚÑ]+)\s+del\s+(\d{4})",
-        texto,
-        re.IGNORECASE
-    )
-
-    if coincidencia:
-        return f"{coincidencia.group(1).upper()} {coincidencia.group(2)}"
+        return f"{mes} {anio}"
 
     return ""
 
 def extraer_datos_formato_3(texto):
 
-    lineas = [
-        linea.strip()
-        for linea in texto.splitlines()
-        if linea.strip()
-    ]
+    meses = (
+        r"ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|"
+        r"JULIO|AGOSTO|SETIEMBRE|SEPTIEMBRE|"
+        r"OCTUBRE|NOVIEMBRE|DICIEMBRE"
+    )
 
-    meses = [
-        "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
-        "JULIO", "AGOSTO", "SETIEMBRE", "SEPTIEMBRE",
-        "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
-    ]
+    # Lee la fila superior de DATOS DE LA FACTURACIÓN.
+    coincidencia = re.search(
+        rf"DATOS DE LA FACTURACI[ÓO]N"
+        rf".*?\b({meses})\b"
+        rf"\s+(\d{{4}})"
+        rf"\s+\d{{2}}/\d{{2}}/\d{{4}}"
+        rf"\s+\w+"
+        rf"\s+\d+(?:\.\d+)?"
+        rf"\s+(\d+)",
+        texto,
+        re.IGNORECASE | re.DOTALL
+    )
 
-    recibos = []
+    if coincidencia:
+        mes = coincidencia.group(1).upper()
+        anio = coincidencia.group(2)
+        m3 = coincidencia.group(3)
 
-    for i, linea in enumerate(lineas):
+        recibo = {
+            "mes": f"{mes} {anio}",
+            "m3": m3
+        }
 
-        if linea.upper() in meses:
-
-            if i + 1 < len(lineas) and re.match(r"^\d{4}$", lineas[i + 1]):
-
-                mes = linea.upper()
-                anio = lineas[i + 1]
-
-                m3 = ""
-
-                # Busca hacia atrás el m3 más cercano antes del mes
-                for j in range(i - 1, max(i - 8, -1), -1):
-                    if re.match(r"^\d+$", lineas[j]):
-                        m3 = lineas[j]
-                        break
-
-                recibos.append({
-                    "mes": f"{mes} {anio}",
-                    "m3": m3
-                })
-
-                if len(recibos) == 3:
-                    break
-
-    primer_recibo = recibos[0] if recibos else {"mes": "", "m3": ""}
+        return {
+            "mes_reclamado_formato_3": recibo["mes"],
+            "m3_reclamado": recibo["m3"],
+            "recibos_formato_3": [recibo]
+        }
 
     return {
-        "mes_reclamado_formato_3": primer_recibo["mes"],
-        "m3_reclamado": primer_recibo["m3"],
-        "recibos_formato_3": recibos
+        "mes_reclamado_formato_3": "",
+        "m3_reclamado": "",
+        "recibos_formato_3": []
     }
 
 def obtener_datos(texto_formato_2, texto_formato_3):
@@ -285,7 +330,10 @@ def obtener_datos(texto_formato_2, texto_formato_3):
     datos = {
 
         # Identificación
-        "re": extraer_re(texto_formato_2),
+        "re": extraer_re_validado(
+            texto_formato_2,
+            texto_formato_3
+        ),
 
         "niss": extraer_niss(texto_formato_2),
 
