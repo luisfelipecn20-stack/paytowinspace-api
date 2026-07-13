@@ -160,6 +160,67 @@ def extraer_texto_pagina(
         pdf.close()
 
 
+def extraer_contraste_desde_imagen(contenido_pdf):
+
+    pdf = fitz.open(
+        stream=contenido_pdf,
+        filetype="pdf"
+    )
+
+    try:
+        pagina = pdf[0]
+
+        # Renderiza la página 1 a buena resolución.
+        escala = 300 / 72
+        matriz = fitz.Matrix(escala, escala)
+
+        pix = pagina.get_pixmap(
+            matrix=matriz,
+            alpha=False
+        )
+
+        imagen = pix.tobytes("png")
+
+        prompt = """
+Observa únicamente la sección:
+
+"DECLARACIÓN DEL RECLAMANTE
+(aplicable a reclamos por consumo medido)
+Solicito la realización de la prueba de contrastación..."
+
+Determina qué opción está marcada con una X:
+
+- Responde SI si está marcada la opción Sí.
+- Responde NO si está marcada la opción No.
+- Responde VACIO si ninguna opción está marcada o no puede determinarse.
+
+Devuelve exclusivamente una de estas palabras:
+SI
+NO
+VACIO
+"""
+
+        respuesta = analizar_imagen(
+            [imagen],
+            prompt
+        )
+
+        if not isinstance(respuesta, str):
+            return ""
+
+        respuesta = respuesta.strip().upper()
+
+        if respuesta == "SI":
+            return "SI"
+
+        if respuesta == "NO":
+            return "NO"
+
+        return ""
+
+    finally:
+        pdf.close()
+
 def buscar_paginas_documentos(contenido_pdf):
 
     pdf = fitz.open(
