@@ -244,22 +244,35 @@ def extraer_fecha_audiencia(texto):
 
 def extraer_solicita_contraste(texto):
 
-    bloque = buscar(
-        r"Solicito la realización de la prueba de contrastación.*?(Si\s+No|NO\s+SI|SI\s+NO)",
-        texto
+    coincidencia = re.search(
+        r"Solicito la realización de la prueba de "
+        r"(?:contrastación|contracertificación|contrarrestación)"
+        r".{0,500}?"
+        r"(Si.{0,120}?No.{0,120}?X|No.{0,120}?X|X.{0,120}?No)",
+        texto,
+        re.IGNORECASE | re.DOTALL
     )
 
-    if not bloque:
+    if not coincidencia:
         return ""
 
-    if re.search(r"No\s+X|X\s+No", texto, re.IGNORECASE):
+    bloque = coincidencia.group(1)
+
+    if re.search(
+        r"No\s*X|X\s*No",
+        bloque,
+        re.IGNORECASE | re.DOTALL
+    ):
         return "NO"
 
-    if re.search(r"Si\s+X|X\s+Si", texto, re.IGNORECASE):
+    if re.search(
+        r"Si\s*X|X\s*Si",
+        bloque,
+        re.IGNORECASE | re.DOTALL
+    ):
         return "SI"
 
     return ""
-
 
 def extraer_mes_reclamado(texto):
 
