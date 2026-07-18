@@ -359,7 +359,8 @@ No utilices Markdown.
                 imagen_superior,
                 imagen_inferior
             ],
-            prompt
+            prompt,
+            modelo="gpt-4o"
         )
 
         if not isinstance(respuesta, str):
