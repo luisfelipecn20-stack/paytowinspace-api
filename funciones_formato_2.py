@@ -113,23 +113,46 @@ def extraer_direccion_suministro(texto):
 
 def extraer_direccion_procesal(texto):
 
-    bloque = buscar(
-        r"DOMICILIO PROCESAL\s+(.*?)\s+O\. C\. CALLAO",
-        texto
+    coincidencia = re.search(
+        r"DOMICILIO PROCESAL\s+"
+        r"(.*?)"
+        r"(?="
+        r"\s+C[oó]digo Postal|"
+        r"\s+\d{9}\b|"
+        r"\s+[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|"
+        r"\s+Tel[eé]fono\s*/\s*Celular|"
+        r"\s+DECLARACI[ÓO]N DEL RECLAMANTE"
+        r")",
+        texto,
+        re.IGNORECASE | re.DOTALL
     )
 
-    if not bloque:
+    if not coincidencia:
         return ""
 
-    lineas = [
-        linea.strip()
-        for linea in bloque.splitlines()
-        if linea.strip()
+    direccion = coincidencia.group(1)
+
+    # Elimina las etiquetas impresas del formulario,
+    # pero conserva los valores de la dirección.
+    etiquetas = [
+        r"\(Calle,\s*Jir[oó]n,\s*Avenida\)",
+        r"\(Urbanizaci[oó]n,\s*[Bb]arrio\)",
+        r"\bN[°º]?\b",
+        r"\bMz\b",
+        r"\bLote\b",
+        r"\bProvincia\b",
+        r"\bDistrito\b"
     ]
 
-    direccion = limpiar_espacios(" ".join(lineas))
+    for etiqueta in etiquetas:
+        direccion = re.sub(
+            etiqueta,
+            " ",
+            direccion,
+            flags=re.IGNORECASE
+        )
 
-    return direccion
+    return limpiar_espacios(direccion)
 
 def extraer_correo(texto):
 
