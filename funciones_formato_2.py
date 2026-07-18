@@ -31,16 +31,32 @@ def extraer_re(texto):
         texto
     )
 
-def extraer_re_validado(texto_formato_2, texto_formato_3):
+def extraer_re_validado(
+    texto_formato_2,
+    texto_recibos,
+    texto_formato_3
+):
 
-    re_formato_2 = extraer_re(texto_formato_2)
-    re_formato_3 = extraer_re(texto_formato_3)
+    valores = [
+        extraer_re(texto_formato_2),
+        extraer_re(texto_recibos),
+        extraer_re(texto_formato_3)
+    ]
 
-    if re_formato_3:
-        return re_formato_3
+    valores = [
+        valor
+        for valor in valores
+        if valor
+    ]
 
-    return re_formato_2
+    if not valores:
+        return ""
 
+    return max(
+        valores,
+        key=valores.count
+    )
+    
 def extraer_niss(texto):
 
     coincidencia = re.search(
@@ -516,6 +532,7 @@ def obtener_datos(
         # Identificación
         "re": extraer_re_validado(
             texto_formato_2,
+            texto_recibos,
             texto_formato_3
         ),
 
