@@ -160,6 +160,31 @@ def extraer_texto_pagina(
 
         pdf.close()
 
+def pagina_es_escaneada(
+    contenido_pdf,
+    numero_pagina=0
+):
+
+    pdf = fitz.open(
+        stream=contenido_pdf,
+        filetype="pdf"
+    )
+
+    try:
+        pagina = pdf[numero_pagina]
+
+        texto_digital = pagina.get_text(
+            "text",
+            sort=True
+        ).strip()
+
+        return not texto_es_suficiente(
+            texto_digital
+        )
+
+    finally:
+        pdf.close()
+
 def limpiar_respuesta_visual(valor):
 
     if not isinstance(valor, str):
@@ -173,6 +198,14 @@ def limpiar_respuesta_visual(valor):
 
 def extraer_campos_visuales_formato_2(contenido_pdf):
 
+    campos_vacios = {
+        "niss": "",
+        "reclamante": "",
+        "direccion_suministro": "",
+        "direccion_procesal": "",
+        "solicita_contraste": ""
+    }
+
     pdf = fitz.open(
         stream=contenido_pdf,
         filetype="pdf"
@@ -182,6 +215,7 @@ def extraer_campos_visuales_formato_2(contenido_pdf):
         pagina = pdf[0]
 
         escala = 300 / 72
+
         matriz = fitz.Matrix(
             escala,
             escala
@@ -195,34 +229,92 @@ def extraer_campos_visuales_formato_2(contenido_pdf):
         imagen = pix.tobytes("png")
 
         prompt = """
-Observa únicamente el Formato 2 de la imagen.
+Observa únicamente la primera página del Formato 2.
 
-Extrae solo estos dos campos:
+Lee directamente las celdas visibles de la imagen. No utilices el
+orden de una transcripción OCR y no inventes información.
 
-1. reclamante:
-   Une Apellido Paterno, Apellido Materno y Nombres,
-   exactamente como aparecen en el documento.
-   No incluyas etiquetas.
+Extrae estos cinco campos:
 
-2. solicita_contraste:
-   Revisa la sección:
+1. niss:
+   Lee todos los dígitos de la celda ubicada junto a
+   "N° DE SUMINISTRO".
+   Devuelve únicamente los números.
+
+2. reclamante:
+   Lee por separado las tres columnas ubicadas bajo
+   "NOMBRE DEL SOLICITANTE O REPRESENTANTE":
+
+   - Apellido Paterno
+   - Apellido Materno
+   - Nombres
+
+   Une los tres valores respetando exactamente este orden:
+   APELLIDO PATERNO + APELLIDO MATERNO + NOMBRES.
+
+   No omitas el apellido paterno aunque esté tenue.
+   No incluyas las etiquetas del formulario.
+
+3. direccion_suministro:
+   Lee todas las celdas de "UBICACIÓN DEL PREDIO":
+
+   - Calle, jirón, avenida o pasaje
+   - Número
+   - Manzana
+   - Lote
+   - Urbanización o barrio
+   - Provincia
+   - Distrito
+
+   Une solamente los valores visibles, en ese orden.
+   No incluyas palabras impresas como:
+   "Calle, Jirón, Avenida", "N°", "Mz", "Lote",
+   "Urbanización, barrio", "Provincia" o "Distrito".
+
+4. direccion_procesal:
+   Lee todas las celdas de "DOMICILIO PROCESAL":
+
+   - Calle, jirón, avenida o pasaje
+   - Número
+   - Manzana
+   - Lote
+   - Urbanización o barrio
+   - Provincia
+   - Distrito
+
+   Une solamente los valores visibles, en ese orden.
+   No incluyas teléfono, correo electrónico, código postal,
+   declaraciones, casillas ni etiquetas del formulario.
+
+5. solicita_contraste:
+   Revisa exclusivamente la sección inferior que comienza con:
+
    "DECLARACIÓN DEL RECLAMANTE
    (aplicable a reclamos por consumo medido)
    Solicito la realización de la prueba de contrastación..."
 
+   No confundas esta sección con:
+   - la entrega de cartilla informativa;
+   - la autorización para recibir correos;
+   - la confirmación de contrastación ubicada junto al correo.
+
    Devuelve:
-   - "SI" si está marcada la opción Sí.
-   - "NO" si está marcada la opción No.
+   - "SI" si la X está en la opción Sí;
+   - "NO" si la X está en la opción No;
    - "" si no puede determinarse.
 
-Devuelve exclusivamente JSON válido con esta estructura:
+Devuelve exclusivamente JSON válido:
 
 {
+  "niss": "",
   "reclamante": "",
+  "direccion_suministro": "",
+  "direccion_procesal": "",
   "solicita_contraste": ""
 }
 
-No agregues explicaciones ni Markdown.
+No agregues explicaciones.
+No utilices Markdown.
 """
 
         respuesta = analizar_imagen(
@@ -231,10 +323,7 @@ No agregues explicaciones ni Markdown.
         )
 
         if not isinstance(respuesta, str):
-            return {
-                "reclamante": "",
-                "solicita_contraste": ""
-            }
+            return campos_vacios
 
         respuesta = respuesta.strip()
 
@@ -249,31 +338,41 @@ No agregues explicaciones ni Markdown.
         try:
             datos = json.loads(respuesta)
         except json.JSONDecodeError:
-            return {
-                "reclamante": "",
-                "solicita_contraste": ""
-            }
+            return campos_vacios
+
+        niss = re.sub(
+            r"\D",
+            "",
+            str(datos.get("niss", ""))
+        )
+
+        if not 6 <= len(niss) <= 10:
+            niss = ""
 
         reclamante = limpiar_respuesta_visual(
             datos.get("reclamante", "")
         )
 
-        solicita_contraste = (
-            str(
-                datos.get(
-                    "solicita_contraste",
-                    ""
-                )
-            )
-            .strip()
-            .upper()
+        direccion_suministro = limpiar_respuesta_visual(
+            datos.get("direccion_suministro", "")
+        )
+
+        direccion_procesal = limpiar_respuesta_visual(
+            datos.get("direccion_procesal", "")
+        )
+
+        solicita_contraste = limpiar_respuesta_visual(
+            datos.get("solicita_contraste", "")
         )
 
         if solicita_contraste not in ["SI", "NO"]:
             solicita_contraste = ""
 
         return {
+            "niss": niss,
             "reclamante": reclamante,
+            "direccion_suministro": direccion_suministro,
+            "direccion_procesal": direccion_procesal,
             "solicita_contraste": solicita_contraste
         }
 
