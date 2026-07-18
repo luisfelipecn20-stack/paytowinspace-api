@@ -221,95 +221,133 @@ def extraer_campos_visuales_formato_2(contenido_pdf):
             escala
         )
 
-        pix = pagina.get_pixmap(
+        ancho = pagina.rect.width
+        alto = pagina.rect.height
+
+        # Recorte superior: identificación, reclamante
+        # y direcciones.
+        recorte_superior = fitz.Rect(
+            0,
+            0,
+            ancho,
+            alto * 0.62
+        )
+
+        # Recorte inferior: casillas de contraste.
+        recorte_inferior = fitz.Rect(
+            0,
+            alto * 0.55,
+            ancho,
+            alto * 0.90
+        )
+
+        pix_superior = pagina.get_pixmap(
             matrix=matriz,
+            clip=recorte_superior,
             alpha=False
         )
 
-        imagen = pix.tobytes("png")
+        pix_inferior = pagina.get_pixmap(
+            matrix=matriz,
+            clip=recorte_inferior,
+            alpha=False
+        )
+
+        imagen_superior = pix_superior.tobytes("png")
+        imagen_inferior = pix_inferior.tobytes("png")
 
         prompt = """
-Observa únicamente la primera página del Formato 2.
+Las dos imágenes pertenecen a la primera página de un Formato 2.
 
-Lee directamente las celdas visibles de la imagen. No utilices el
-orden de una transcripción OCR y no inventes información.
+La primera imagen contiene la parte superior del formulario.
+La segunda imagen contiene la parte inferior.
 
-Extrae estos cinco campos:
+Lee directamente las celdas visibles. No inventes información y no
+utilices el orden de una transcripción OCR.
+
+Extrae los siguientes campos por separado:
 
 1. niss:
-   Lee todos los dígitos de la celda ubicada junto a
+   Lee únicamente los dígitos de la celda ubicada junto a
    "N° DE SUMINISTRO".
-   Devuelve únicamente los números.
 
-2. reclamante:
-   Lee por separado las tres columnas ubicadas bajo
+2. Datos del reclamante:
+   Lee las tres columnas ubicadas bajo
    "NOMBRE DEL SOLICITANTE O REPRESENTANTE":
 
-   - Apellido Paterno
-   - Apellido Materno
-   - Nombres
+   - apellido_paterno
+   - apellido_materno
+   - nombres
 
-   Une los tres valores respetando exactamente este orden:
-   APELLIDO PATERNO + APELLIDO MATERNO + NOMBRES.
-
-   No omitas el apellido paterno aunque esté tenue.
-   No incluyas las etiquetas del formulario.
+   No unas las columnas.
+   No omitas el apellido paterno.
+   No incluyas etiquetas.
 
 3. direccion_suministro:
-   Lee todas las celdas de "UBICACIÓN DEL PREDIO":
+   Lee por separado las celdas de "UBICACIÓN DEL PREDIO":
 
-   - Calle, jirón, avenida o pasaje
-   - Número
-   - Manzana
-   - Lote
-   - Urbanización o barrio
-   - Provincia
-   - Distrito
-
-   Une solamente los valores visibles, en ese orden.
-   No incluyas palabras impresas como:
-   "Calle, Jirón, Avenida", "N°", "Mz", "Lote",
-   "Urbanización, barrio", "Provincia" o "Distrito".
+   - via
+   - numero
+   - manzana
+   - lote
+   - urbanizacion
+   - provincia
+   - distrito
 
 4. direccion_procesal:
-   Lee todas las celdas de "DOMICILIO PROCESAL":
+   Lee por separado las celdas de "DOMICILIO PROCESAL":
 
-   - Calle, jirón, avenida o pasaje
-   - Número
-   - Manzana
-   - Lote
-   - Urbanización o barrio
-   - Provincia
-   - Distrito
+   - via
+   - numero
+   - manzana
+   - lote
+   - urbanizacion
+   - provincia
+   - distrito
 
-   Une solamente los valores visibles, en ese orden.
-   No incluyas teléfono, correo electrónico, código postal,
-   declaraciones, casillas ni etiquetas del formulario.
+   No incluyas teléfono, correo, código postal, declaraciones,
+   casillas ni etiquetas.
 
 5. solicita_contraste:
-   Revisa exclusivamente la sección inferior que comienza con:
+   Revisa exclusivamente la sección:
 
    "DECLARACIÓN DEL RECLAMANTE
    (aplicable a reclamos por consumo medido)
    Solicito la realización de la prueba de contrastación..."
 
-   No confundas esta sección con:
-   - la entrega de cartilla informativa;
-   - la autorización para recibir correos;
-   - la confirmación de contrastación ubicada junto al correo.
-
    Devuelve:
-   - "SI" si la X está en la opción Sí;
-   - "NO" si la X está en la opción No;
+   - "SI" si la X está junto a Sí.
+   - "NO" si la X está junto a No.
    - "" si no puede determinarse.
 
-Devuelve exclusivamente JSON válido:
+   No confundas esta sección con la entrega de cartilla,
+   la autorización de correo ni otra casilla.
+
+Devuelve exclusivamente JSON válido con esta estructura:
 
 {
   "niss": "",
-  "reclamante": "",
-  "direccion_suministro": "",
-  "direccion_procesal": "",
+  "apellido_paterno": "",
+  "apellido_materno": "",
+  "nombres": "",
+  "direccion_suministro": {
+    "via": "",
+    "numero": "",
+    "manzana": "",
+    "lote": "",
+    "urbanizacion": "",
+    "provincia": "",
+    "distrito": ""
+  },
+  "direccion_procesal": {
+    "via": "",
+    "numero": "",
+    "manzana": "",
+    "lote": "",
+    "urbanizacion": "",
+    "provincia": "",
+    "distrito": ""
+  },
   "solicita_contraste": ""
 }
 
@@ -318,7 +356,10 @@ No utilices Markdown.
 """
 
         respuesta = analizar_imagen(
-            [imagen],
+            [
+                imagen_superior,
+                imagen_inferior
+            ],
             prompt
         )
 
@@ -349,16 +390,64 @@ No utilices Markdown.
         if not 6 <= len(niss) <= 10:
             niss = ""
 
+        apellido_paterno = limpiar_respuesta_visual(
+            datos.get("apellido_paterno", "")
+        )
+
+        apellido_materno = limpiar_respuesta_visual(
+            datos.get("apellido_materno", "")
+        )
+
+        nombres = limpiar_respuesta_visual(
+            datos.get("nombres", "")
+        )
+
         reclamante = limpiar_respuesta_visual(
-            datos.get("reclamante", "")
+            " ".join(
+                valor
+                for valor in [
+                    apellido_paterno,
+                    apellido_materno,
+                    nombres
+                ]
+                if valor
+            )
         )
 
-        direccion_suministro = limpiar_respuesta_visual(
-            datos.get("direccion_suministro", "")
+        def construir_direccion(nombre_campo):
+
+            direccion = datos.get(
+                nombre_campo,
+                {}
+            )
+
+            if not isinstance(direccion, dict):
+                return ""
+
+            partes = [
+                direccion.get("via", ""),
+                direccion.get("numero", ""),
+                direccion.get("manzana", ""),
+                direccion.get("lote", ""),
+                direccion.get("urbanizacion", ""),
+                direccion.get("provincia", ""),
+                direccion.get("distrito", "")
+            ]
+
+            partes_limpias = [
+                limpiar_respuesta_visual(parte)
+                for parte in partes
+                if limpiar_respuesta_visual(parte)
+            ]
+
+            return " ".join(partes_limpias)
+
+        direccion_suministro = construir_direccion(
+            "direccion_suministro"
         )
 
-        direccion_procesal = limpiar_respuesta_visual(
-            datos.get("direccion_procesal", "")
+        direccion_procesal = construir_direccion(
+            "direccion_procesal"
         )
 
         solicita_contraste = limpiar_respuesta_visual(
