@@ -56,37 +56,107 @@ def extraer_niss(texto):
 
 def extraer_reclamante(texto):
 
-    coincidencia = re.search(
+    bloque = buscar(
         r"NOMBRE DEL SOLICITANTE O REPRESENTANTE"
-        r".*?"
-        r"Apellido Paterno\s+([A-ZÁÉÍÓÚÑ]+)"
-        r".*?"
-        r"Apellido Materno\s*([A-ZÁÉÍÓÚÑ]*)"
-        r".*?"
-        r"Nombres\s+([A-ZÁÉÍÓÚÑ\s]+?)"
-        r"\s+N[ÚU]MERO DE DOCUMENTO",
-        texto,
-        re.IGNORECASE | re.DOTALL
+        r"(.*?)"
+        r"N[ÚU]MERO DE DOCUMENTO",
+        texto
     )
 
-    if coincidencia:
-        apellido_paterno = coincidencia.group(1).strip()
-        apellido_materno = coincidencia.group(2).strip()
-        nombres = limpiar_espacios(
-            coincidencia.group(3)
+    if not bloque:
+        return ""
+
+    lineas = [
+        linea.strip()
+        for linea in bloque.splitlines()
+        if linea.strip()
+    ]
+
+    # Caso de PDF con texto nativo:
+    # APELLIDO PATERNO | APELLIDO MATERNO | NOMBRES
+    for linea in lineas:
+
+        linea_mayuscula = linea.upper()
+
+        if (
+            "APELLIDO PATERNO" in linea_mayuscula
+            or "APELLIDO MATERNO" in linea_mayuscula
+            or "NOMBRES" in linea_mayuscula
+            or "TELÉFONO" in linea_mayuscula
+            or "TELEFONO" in linea_mayuscula
+        ):
+            continue
+
+        columnas = re.split(
+            r"[ \t]{2,}",
+            linea
         )
 
-        partes = [
-            apellido_paterno,
-            apellido_materno,
-            nombres
+        columnas = [
+            limpiar_espacios(columna)
+            for columna in columnas
+            if limpiar_espacios(columna)
         ]
 
-        return " ".join(
-            parte
-            for parte in partes
-            if parte
+        if len(columnas) >= 3:
+
+            apellido_paterno = columnas[0]
+            apellido_materno = columnas[1]
+            nombres = columnas[2]
+
+            return " ".join([
+                apellido_paterno,
+                apellido_materno,
+                nombres
+            ])
+
+    # Caso de PDF escaneado: los dos apellidos aparecen
+    # juntos antes de las etiquetas del formulario.
+    for linea in lineas:
+
+        linea_mayuscula = linea.upper()
+
+        if (
+            "APELLIDO" in linea_mayuscula
+            or "TELÉFONO" in linea_mayuscula
+            or "TELEFONO" in linea_mayuscula
+        ):
+            continue
+
+        columnas = re.split(
+            r"[ \t]{2,}",
+            linea
         )
+
+        columnas = [
+            limpiar_espacios(columna)
+            for columna in columnas
+            if limpiar_espacios(columna)
+        ]
+
+        if len(columnas) == 2:
+
+            coincidencia_nombres = re.search(
+                r"\bNombres\s+"
+                r"([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+)*)",
+                bloque,
+                re.IGNORECASE
+            )
+
+            if coincidencia_nombres:
+
+                apellido_paterno = columnas[0]
+                apellido_materno = columnas[1]
+
+                nombres = limpiar_espacios(
+                    coincidencia_nombres.group(1)
+                )
+
+                return " ".join([
+                    apellido_paterno,
+                    apellido_materno,
+                    nombres
+                ])
 
     return ""
 
