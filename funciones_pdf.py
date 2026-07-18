@@ -224,13 +224,12 @@ def extraer_campos_visuales_formato_2(contenido_pdf):
         ancho = pagina.rect.width
         alto = pagina.rect.height
 
-        # Recorte superior: identificación, reclamante
-        # y direcciones.
+        # Recorte superior: identificación y reclamante.
         recorte_superior = fitz.Rect(
             0,
-            0,
+            alto * 0.05,
             ancho,
-            alto * 0.62
+            alto * 0.30
         )
 
         # Recorte inferior: casillas de contraste.
