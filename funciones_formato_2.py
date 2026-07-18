@@ -1,6 +1,7 @@
 from funciones_pdf import (
     extraer_texto_pagina,
-    extraer_campos_visuales_formato_2
+    extraer_campos_visuales_formato_2,
+    pagina_es_escaneada
 )
 import re
 
@@ -562,6 +563,13 @@ def obtener_datos(
 
 def obtener_datos_formato_2(pdf_formato_2):
 
+    # Determina si la primera página contiene texto digital
+    # o si corresponde a un documento escaneado.
+    es_escaneado = pagina_es_escaneada(
+        pdf_formato_2,
+        0
+    )
+
     # Página 1: Formato 2
     texto_formato_2 = extraer_texto_pagina(
         pdf_formato_2,
@@ -586,28 +594,46 @@ def obtener_datos_formato_2(pdf_formato_2):
         texto_formato_3
     )
 
-    # Solo usa respaldo visual cuando falta
-    # el reclamante o la respuesta de contraste.
-    if (
-        not datos["reclamante"]
-        or not datos["solicita_contraste"]
-    ):
+    campos_visuales_necesarios = [
+        "niss",
+        "reclamante",
+        "direccion_suministro",
+        "direccion_procesal",
+        "solicita_contraste"
+    ]
+
+    debe_usar_vision = (
+        es_escaneado
+        or any(
+            not datos.get(campo)
+            for campo in campos_visuales_necesarios
+        )
+    )
+
+    if debe_usar_vision:
 
         campos_visuales = extraer_campos_visuales_formato_2(
             pdf_formato_2
         )
 
-        if not datos["reclamante"]:
-            datos["reclamante"] = campos_visuales.get(
-                "reclamante",
+        for campo in campos_visuales_necesarios:
+
+            valor_visual = campos_visuales.get(
+                campo,
                 ""
             )
 
-        if not datos["solicita_contraste"]:
-            datos["solicita_contraste"] = campos_visuales.get(
-                "solicita_contraste",
-                ""
-            )
+            if not valor_visual:
+                continue
+
+            # En documentos escaneados, la lectura estructurada
+            # de las celdas tiene prioridad sobre el OCR general.
+            if es_escaneado:
+                datos[campo] = valor_visual
+
+            # En documentos digitales solo completa campos vacíos.
+            elif not datos.get(campo):
+                datos[campo] = valor_visual
 
     print(datos)
 
