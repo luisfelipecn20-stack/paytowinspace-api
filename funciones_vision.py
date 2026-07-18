@@ -2,17 +2,25 @@ from openai import OpenAI
 import base64
 import os
 
+
 cliente = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
 
-def analizar_imagen(imagenes_png, prompt_sistema):
+def analizar_imagen(
+    imagenes_png,
+    prompt_sistema
+):
 
     contenido = [
         {
             "type": "text",
-            "text": "Transcribe literalmente todo el texto visible de las siguientes imágenes."
+            "text": (
+                "Analiza las imágenes siguiendo exactamente "
+                "las instrucciones del mensaje del sistema. "
+                "Devuelve exclusivamente el formato solicitado."
+            )
         }
     ]
 
@@ -26,13 +34,18 @@ def analizar_imagen(imagenes_png, prompt_sistema):
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": f"data:image/png;base64,{imagen_base64}"
+                    "url": (
+                        "data:image/png;base64,"
+                        f"{imagen_base64}"
+                    ),
+                    "detail": "high"
                 }
             }
         )
 
     respuesta = cliente.chat.completions.create(
         model="gpt-4o-mini",
+        temperature=0,
         messages=[
             {
                 "role": "system",
