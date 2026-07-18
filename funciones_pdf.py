@@ -236,9 +236,9 @@ def extraer_campos_visuales_formato_2(contenido_pdf):
         # Recorte inferior: casillas de contraste.
         recorte_inferior = fitz.Rect(
             0,
-            alto * 0.55,
+            alto * 0.68,
             ancho,
-            alto * 0.90
+            alto * 0.82
         )
 
         pix_superior = pagina.get_pixmap(
