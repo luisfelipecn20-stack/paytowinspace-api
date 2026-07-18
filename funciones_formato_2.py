@@ -175,6 +175,24 @@ def extraer_reclamante(texto):
                     nombres
                 ])
 
+    # Respaldo para OCR escaneado cuando todo el nombre
+    # aparece en una línea antes de las tres etiquetas.
+    coincidencia_fila_completa = re.search(
+        r"^\s*"
+        r"([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+)+)"
+        r"\s*$"
+        r"\s*Apellido Paterno"
+        r"\s+Apellido Materno"
+        r"\s+Nombres",
+        bloque,
+        re.IGNORECASE | re.MULTILINE
+    )
+
+    if coincidencia_fila_completa:
+        return limpiar_espacios(
+            coincidencia_fila_completa.group(1)
+        )
+    
     return ""
 
 
@@ -644,8 +662,19 @@ def obtener_datos_formato_2(pdf_formato_2):
         # tiene prioridad para reclamante y direcciones.
         if es_escaneado:
 
+            # Vision completa el reclamante solamente
+            # cuando el OCR no pudo obtenerlo.
+            if (
+                not datos.get("reclamante")
+                and campos_visuales.get("reclamante")
+            ):
+                datos["reclamante"] = (
+                    campos_visuales["reclamante"]
+                )
+
+            # Las direcciones visuales siguen teniendo
+            # prioridad temporalmente en los escaneados.
             for campo in [
-                "reclamante",
                 "direccion_suministro",
                 "direccion_procesal"
             ]:
