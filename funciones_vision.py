@@ -10,7 +10,8 @@ cliente = OpenAI(
 
 def analizar_imagen(
     imagenes_png,
-    prompt_sistema
+    prompt_sistema,
+    modelo="gpt-4o-mini"
 ):
 
     contenido = [
@@ -44,7 +45,7 @@ def analizar_imagen(
         )
 
     respuesta = cliente.chat.completions.create(
-        model="gpt-4o-mini",
+        model=modelo,
         temperature=0,
         messages=[
             {
