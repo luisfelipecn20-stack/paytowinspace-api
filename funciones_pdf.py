@@ -229,7 +229,7 @@ def extraer_campos_visuales_formato_2(contenido_pdf):
             0,
             alto * 0.05,
             ancho,
-            alto * 0.30
+            alto * 0.43
         )
 
         # Recorte inferior: casillas de contraste.
