@@ -296,7 +296,7 @@ def extraer_mes_reclamado(texto):
 
     return ""
 
-def extraer_datos_formato_3(texto):
+def extraer_meses_reclamados(texto_formato_2, texto_recibos):
 
     meses = (
         r"ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|"
@@ -304,33 +304,95 @@ def extraer_datos_formato_3(texto):
         r"OCTUBRE|NOVIEMBRE|DICIEMBRE"
     )
 
-    # Lee la fila superior de DATOS DE LA FACTURACIÓN.
-    coincidencia = re.search(
-        rf"DATOS DE LA FACTURACI[ÓO]N"
-        rf".*?\b({meses})\b"
-        rf"\s+(\d{{4}})"
-        rf"\s+\d{{2}}/\d{{2}}/\d{{4}}"
-        rf"\s+\w+"
-        rf"\s+\d+(?:\.\d+)?"
-        rf"\s+(\d+)",
-        texto,
-        re.IGNORECASE | re.DOTALL
+    coincidencias = re.findall(
+        rf"\b({meses})\b\s+(\d{{4}})\s+\d+(?:[.,]\d+)?",
+        texto_recibos,
+        re.IGNORECASE
     )
 
-    if coincidencia:
+    meses_reclamados = []
+
+    for mes, anio in coincidencias:
+
+        periodo = f"{mes.upper()} {anio}"
+
+        if periodo not in meses_reclamados:
+            meses_reclamados.append(periodo)
+
+        # Por ahora, PEIAD procesará como máximo tres meses.
+        if len(meses_reclamados) == 3:
+            break
+
+    if meses_reclamados:
+        return meses_reclamados
+
+    # Respaldo para expedientes con un solo mes.
+    mes_formato_2 = extraer_mes_reclamado(texto_formato_2)
+
+    if mes_formato_2:
+        return [mes_formato_2]
+
+    return []
+
+def extraer_datos_formato_3(
+    texto,
+    meses_reclamados
+):
+
+    meses = (
+        r"ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|"
+        r"JULIO|AGOSTO|SETIEMBRE|SEPTIEMBRE|"
+        r"OCTUBRE|NOVIEMBRE|DICIEMBRE"
+    )
+
+    patron_fila = re.compile(
+        rf"\b\d+\s+"
+        rf"({meses})\s+"
+        rf"(\d{{4}})\s+"
+        rf".*?"
+        rf"\d{{2}}/\d{{2}}/\d{{4}}\s+"
+        rf"(?:Lectura|Promedio|Asignado|CM)\s+"
+        rf"\d+(?:[.,]\d+)?\s+"
+        rf"(\d+)\b",
+        re.IGNORECASE
+    )
+
+    recibos_encontrados = {}
+
+    for coincidencia in patron_fila.finditer(texto):
+
         mes = coincidencia.group(1).upper()
         anio = coincidencia.group(2)
         m3 = coincidencia.group(3)
 
-        recibo = {
-            "mes": f"{mes} {anio}",
+        periodo = f"{mes} {anio}"
+
+        recibos_encontrados[periodo] = {
+            "mes": periodo,
             "m3": m3
         }
 
+    recibos_reclamados = []
+
+    for periodo in meses_reclamados:
+
+        if periodo in recibos_encontrados:
+            recibos_reclamados.append(
+                recibos_encontrados[periodo]
+            )
+        else:
+            recibos_reclamados.append({
+                "mes": periodo,
+                "m3": ""
+            })
+
+    if recibos_reclamados:
+        primer_recibo = recibos_reclamados[0]
+
         return {
-            "mes_reclamado_formato_3": recibo["mes"],
-            "m3_reclamado": recibo["m3"],
-            "recibos_formato_3": [recibo]
+            "mes_reclamado_formato_3": primer_recibo["mes"],
+            "m3_reclamado": primer_recibo["m3"],
+            "recibos_formato_3": recibos_reclamados
         }
 
     return {
@@ -339,9 +401,21 @@ def extraer_datos_formato_3(texto):
         "recibos_formato_3": []
     }
 
-def obtener_datos(texto_formato_2, texto_formato_3):
-    
-    datos_formato_3 = extraer_datos_formato_3(texto_formato_3)
+def obtener_datos(
+    texto_formato_2,
+    texto_recibos,
+    texto_formato_3
+):
+
+    meses_reclamados = extraer_meses_reclamados(
+        texto_formato_2,
+        texto_recibos
+    )
+
+    datos_formato_3 = extraer_datos_formato_3(
+        texto_formato_3,
+        meses_reclamados
+    )
 
     datos = {
 
@@ -366,7 +440,13 @@ def obtener_datos(texto_formato_2, texto_formato_3):
         "correo_electronico": extraer_correo(texto_formato_2),
 
         # Reclamo
-        "mes_reclamado": extraer_mes_reclamado(texto_formato_2),
+        "mes_reclamado": (
+        meses_reclamados[0]
+        if meses_reclamados
+        else ""
+        ),
+
+        "meses_reclamados": meses_reclamados,
         "mes_reclamado_formato_3": datos_formato_3["mes_reclamado_formato_3"],
         "m3_reclamado": datos_formato_3["m3_reclamado"],
         "recibos_formato_3": datos_formato_3["recibos_formato_3"],
@@ -380,6 +460,7 @@ def obtener_datos(texto_formato_2, texto_formato_3):
     
         # Temporal (para depuración)
         "texto_formato_2": texto_formato_2,
+        "texto_recibos_reclamados": texto_recibos,
         "texto_formato_3": texto_formato_3
 
     }
@@ -388,11 +469,19 @@ def obtener_datos(texto_formato_2, texto_formato_3):
 
 def obtener_datos_formato_2(pdf_formato_2):
 
+    # Página 1: Formato 2
     texto_formato_2 = extraer_texto_pagina(
         pdf_formato_2,
         0
     )
 
+    # Página 3: lista de recibos reclamados
+    texto_recibos = extraer_texto_pagina(
+        pdf_formato_2,
+        2
+    )
+
+    # Página 4: Formato 3
     texto_formato_3 = extraer_texto_pagina(
         pdf_formato_2,
         3
@@ -400,6 +489,7 @@ def obtener_datos_formato_2(pdf_formato_2):
 
     datos = obtener_datos(
         texto_formato_2,
+        texto_recibos,
         texto_formato_3
     )
 
