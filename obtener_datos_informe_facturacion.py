@@ -1,6 +1,9 @@
 import json
 import re
 
+from io import BytesIO
+
+from pypdf import PdfReader
 from funciones_pdf import (
     convertir_pdf_a_imagenes,
     extraer_texto_pdf
@@ -161,11 +164,41 @@ def extraer_regimen_con_vision(pdf):
 
     return regimen, respuesta
 
+def extraer_texto_con_pypdf(
+    contenido_pdf
+):
+
+    try:
+
+        lector = PdfReader(
+            BytesIO(contenido_pdf)
+        )
+
+        textos = []
+
+        for pagina in lector.pages:
+
+            texto_pagina = (
+                pagina.extract_text()
+                or ""
+            )
+
+            textos.append(
+                texto_pagina
+            )
+
+        return "\n".join(
+            textos
+        )
+
+    except Exception:
+
+        return ""
 
 def obtener_datos_informe_facturacion(pdf):
 
     # Primer intento:
-    # extracción directa del texto digital.
+    # extracción con PyMuPDF.
     texto_pdf = extraer_texto_pdf(
         pdf
     )
@@ -178,12 +211,31 @@ def obtener_datos_informe_facturacion(pdf):
 
         return {
             "regimen_facturacion": regimen,
-            "fuente": "PDF_TEXTO",
+            "fuente": "PYMUPDF_TEXTO",
             "respuesta_gpt": ""
         }
 
     # Segundo intento:
-    # Vision únicamente para informes escaneados.
+    # extracción local con pypdf.
+    texto_pypdf = extraer_texto_con_pypdf(
+        pdf
+    )
+
+    regimen = extraer_regimen_desde_texto(
+        texto_pypdf
+    )
+
+    if regimen:
+
+        return {
+            "regimen_facturacion": regimen,
+            "fuente": "PYPDF_TEXTO",
+            "respuesta_gpt": ""
+        }
+
+    # Tercer intento:
+    # Vision solo si los dos extractores
+    # locales no encontraron las filas.
     regimen, respuesta_gpt = (
         extraer_regimen_con_vision(pdf)
     )
@@ -194,13 +246,13 @@ def obtener_datos_informe_facturacion(pdf):
         fuente = "NO_ENCONTRADO"
 
     return {
-    "regimen_facturacion": regimen,
-    "fuente": fuente,
-    "respuesta_gpt": respuesta_gpt,
-    "diagnostico_caracteres": len(
-        texto_pdf
-    ),
-    "diagnostico_texto": texto_pdf[
-        :2000
-    ]
-}
+        "regimen_facturacion": regimen,
+        "fuente": fuente,
+        "respuesta_gpt": respuesta_gpt,
+        "diagnostico_pymupdf": len(
+            texto_pdf
+        ),
+        "diagnostico_pypdf": len(
+            texto_pypdf
+        )
+    }
