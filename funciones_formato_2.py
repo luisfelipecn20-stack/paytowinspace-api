@@ -908,11 +908,14 @@ def obtener_datos_formato_2(pdf_formato_2):
                 ):
                     datos[campo] = campos_visuales[campo]
 
-        # El contraste obtenido por regex nunca se reemplaza.
-        # Vision solo se utiliza cuando está vacío.
+        # En documentos escaneados, Vision tiene prioridad
+        # para determinar visualmente dónde está la X.
         if (
-            not datos.get("solicita_contraste")
-            and campos_visuales.get("solicita_contraste")
+            campos_visuales.get("solicita_contraste")
+            and (
+                es_escaneado
+                or not datos.get("solicita_contraste")
+            )
         ):
             datos["solicita_contraste"] = (
                 campos_visuales["solicita_contraste"]
