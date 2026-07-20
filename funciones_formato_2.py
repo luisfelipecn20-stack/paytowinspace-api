@@ -1074,6 +1074,10 @@ def obtener_datos_formato_2(pdf_formato_2):
     datos["direccion_procesal"] = limpiar_direccion(
         datos.get("direccion_procesal", "")
     )
+
+    datos["visto"] = generar_visto(
+        datos
+    )
     
     print(datos)
 
