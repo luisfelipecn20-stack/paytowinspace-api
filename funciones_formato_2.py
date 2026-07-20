@@ -538,62 +538,155 @@ def extraer_canal_atencion(texto):
 
 def extraer_fecha_reclamo(texto):
 
-    # La fecha de presentación aparece al pie del Formato 2.
-    coincidencia = re.search(
-        r"(\d{2}/\d{2}/\d{4})\s+Fecha\s*$",
-        texto,
-        re.IGNORECASE | re.DOTALL
+    def validar_fecha_numerica(valor):
+
+        partes = valor.split("/")
+
+        if len(partes) != 3:
+            return ""
+
+        try:
+            dia = int(partes[0])
+            mes = int(partes[1])
+            anio = int(partes[2])
+        except ValueError:
+            return ""
+
+        if not 1 <= dia <= 31:
+            return ""
+
+        if not 1 <= mes <= 12:
+            return ""
+
+        return f"{dia:02d}/{mes:02d}/{anio:04d}"
+
+    meses_numero = {
+        "ENE": "01",
+        "FEB": "02",
+        "MAR": "03",
+        "ABR": "04",
+        "MAY": "05",
+        "JUN": "06",
+        "JUL": "07",
+        "AGO": "08",
+        "SET": "09",
+        "SEP": "09",
+        "OCT": "10",
+        "NOV": "11",
+        "DIC": "12"
+    }
+
+    # Localiza la sección final del Formato 2.
+    marcas_firma = list(
+        re.finditer(
+            r"(?:Firma|Firm[eé])\s+del Reclamante"
+            r"|Huella digital",
+            texto,
+            re.IGNORECASE
+        )
     )
 
-    if coincidencia:
-        return coincidencia.group(1).strip()
+    if marcas_firma:
 
-    # Fecha escrita con el mes abreviado:
-    # 02 JUL. 2026
-    coincidencia_textual = re.search(
-        r"\b(\d{1,2})\s+"
+        inicio = max(
+            0,
+            marcas_firma[-1].start() - 300
+        )
+
+        bloque_fecha = texto[inicio:]
+
+    else:
+        # Respaldo: revisa únicamente el tramo final.
+        bloque_fecha = texto[-1200:]
+
+    candidatos = []
+
+    # Fechas numéricas ubicadas en el pie.
+    for coincidencia in re.finditer(
+        r"\b\d{1,2}/\d{1,2}/\d{4}\b",
+        bloque_fecha
+    ):
+
+        # Revisa solamente el texto situado desde
+        # la fecha numérica anterior.
+        inicio_contexto = max(
+            0,
+            coincidencia.start() - 200
+        )
+
+        contexto_previo = bloque_fecha[
+            inicio_contexto:coincidencia.start()
+        ]
+
+        fechas_previas = list(
+            re.finditer(
+                r"\b\d{1,2}/\d{1,2}/\d{4}\b",
+                contexto_previo
+            )
+        )
+
+        if fechas_previas:
+            contexto_previo = contexto_previo[
+                fechas_previas[-1].end():
+            ]
+
+        contexto_normalizado = normalizar_texto(
+            contexto_previo
+        )
+
+        etiquetas_excluidas = [
+            "FECHA MAXIMA DE NOTIFICACION",
+            "CITACION A REUNION",
+            "INSPECCION INTERNA Y EXTERNA"
+        ]
+
+        if any(
+            etiqueta in contexto_normalizado
+            for etiqueta in etiquetas_excluidas
+        ):
+            continue
+
+        fecha = validar_fecha_numerica(
+            coincidencia.group(0)
+        )
+
+        if fecha:
+            candidatos.append((
+                coincidencia.start(),
+                fecha
+            ))
+
+    # Fechas con mes abreviado ubicadas en el pie.
+    for coincidencia in re.finditer(
+        r"\b(0?[1-9]|[12]\d|3[01])\s+"
         r"(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SET|SEP|OCT|NOV|DIC)"
         r"\.?\s+"
-        r"(\d{4})"
-        r"\s+Fecha\b",
-        texto,
+        r"(\d{4})\b",
+        bloque_fecha,
         re.IGNORECASE
-    )
+    ):
 
-    if coincidencia_textual:
-
-        meses_numero = {
-            "ENE": "01",
-            "FEB": "02",
-            "MAR": "03",
-            "ABR": "04",
-            "MAY": "05",
-            "JUN": "06",
-            "JUL": "07",
-            "AGO": "08",
-            "SET": "09",
-            "SEP": "09",
-            "OCT": "10",
-            "NOV": "11",
-            "DIC": "12"
-        }
-
-        dia = coincidencia_textual.group(1).zfill(2)
+        dia = int(coincidencia.group(1))
         mes = meses_numero[
-            coincidencia_textual.group(2).upper()
+            coincidencia.group(2).upper()
         ]
-        anio = coincidencia_textual.group(3)
+        anio = coincidencia.group(3)
 
-        return f"{dia}/{mes}/{anio}"
-    
-    # Respaldo: toma la última fecha encontrada.
-    fechas = re.findall(
-        r"\b\d{2}/\d{2}/\d{4}\b",
-        texto
-    )
+        fecha = f"{dia:02d}/{mes}/{anio}"
 
-    if fechas:
-        return fechas[-1]
+        candidatos.append((
+            coincidencia.start(),
+            fecha
+        ))
+
+    if candidatos:
+
+        # Utiliza la última fecha válida encontrada
+        # dentro de la sección de firma.
+        return max(
+            candidatos,
+            key=lambda elemento: elemento[0]
+        )[1]
 
     return ""
 
