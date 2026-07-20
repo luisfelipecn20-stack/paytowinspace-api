@@ -4,6 +4,32 @@ from funciones_pdf import (
     pagina_es_escaneada
 )
 import re
+import unicodedata
+
+TIPOLOGIAS_RECLAMO = {
+    "CR118": "Asignación de consumo",
+    "CR120": "Conceptos emitidos",
+    "CR129": "Consumo Atribuible a Otro Suministro",
+    "CR128": "Consumo Atribuible a Usuario Anterior del Suministro",
+    "CR125": "Consumo Medido",
+    "CR132": "Consumo Medido - Desproporcional",
+    "CR126": "Consumo No Facturado Oportunamente",
+    "CR127": "Consumo No Realizado por Servicio Cerrado",
+    "CR102": "Consumo por promedio",
+    "CR137": "F.P. Categoría de Usuario",
+    "CR139": "F.P. Consumo no realizado",
+    "CR138": "F.P. Importe Facturado por el Servicio",
+    "CR136": "F.P. VAF (Volumen de Agua Facturado - m³)",
+    "CR123": "Número de Unidades de Uso",
+    "CR106": "Pagos no procesados",
+    "CR130": "Tipo de Tarifa",
+    "CR151": "Uso de la Red de Desagüe",
+    "CR134": "VMA - Cargo por suspensión y reapertura",
+    "CR133": "VMA - Conceptos por prueba, análisis y laboratorio",
+    "CR180": "VMA - Factor de ajuste",
+    "CR181": "VMA - Factor de ajuste e importe de alcantarillado",
+    "CR135": "VMA - Importe por Alcantarillado"
+}
 
 def buscar(patron, texto):
 
@@ -24,6 +50,20 @@ def limpiar_espacios(texto):
 # ==========================
 # EXTRACTORES
 # ==========================
+
+def normalizar_texto(texto):
+    texto = unicodedata.normalize(
+        "NFD",
+        texto or ""
+    )
+
+    texto = "".join(
+        caracter
+        for caracter in texto
+        if unicodedata.category(caracter) != "Mn"
+    )
+
+    return limpiar_espacios(texto).upper()
 
 def limpiar_direccion(direccion):
     if not direccion:
@@ -342,12 +382,32 @@ def extraer_tiene_correo(texto):
 
 def extraer_tipo_reclamo(texto):
 
-    tipo = buscar(
-        r"TIPO DE RECLAMO.*?(Consumo Medido)",
+    bloque = buscar(
+        r"TIPO DE RECLAMO"
+        r"(.*?)"
+        r"BREVE DESCRIPCI[ÓO]N",
         texto
     )
 
-    return tipo
+    if not bloque:
+        return ""
+
+    bloque_normalizado = normalizar_texto(bloque)
+
+    # Se revisan primero los nombres más largos para evitar
+    # confundir Consumo Medido - Desproporcional con Consumo Medido.
+    tipologias_ordenadas = sorted(
+        TIPOLOGIAS_RECLAMO.items(),
+        key=lambda elemento: len(elemento[1]),
+        reverse=True
+    )
+
+    for codigo, nombre in tipologias_ordenadas:
+
+        if normalizar_texto(nombre) in bloque_normalizado:
+            return nombre
+
+    return ""
 
 def extraer_canal_atencion(texto):
 
@@ -609,6 +669,19 @@ def obtener_datos(
         meses_reclamados
     )
 
+    tipo_reclamo = extraer_tipo_reclamo(
+        texto_formato_2
+    )
+
+    codigo_tipo_reclamo = next(
+        (
+            codigo
+            for codigo, nombre in TIPOLOGIAS_RECLAMO.items()
+            if nombre == tipo_reclamo
+        ),
+        ""
+    )
+
     datos = {
 
         # Identificación
@@ -633,6 +706,9 @@ def obtener_datos(
         "correo_electronico": extraer_correo(texto_formato_2),
 
         # Reclamo
+        "codigo_tipo_reclamo": codigo_tipo_reclamo,
+        "tipo_reclamo": tipo_reclamo,
+
         "mes_reclamado": (
         meses_reclamados[0]
         if meses_reclamados
