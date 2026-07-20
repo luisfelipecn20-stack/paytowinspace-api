@@ -1,7 +1,8 @@
 from funciones_pdf import (
     extraer_texto_pagina,
     extraer_campos_visuales_formato_2,
-    pagina_es_escaneada
+    pagina_es_escaneada,
+    contar_paginas_pdf
 )
 import re
 import unicodedata
@@ -64,6 +65,49 @@ def normalizar_texto(texto):
     )
 
     return limpiar_espacios(texto).upper()
+
+def extraer_recibos_y_formato_3(pdf):
+
+    total_paginas = contar_paginas_pdf(pdf)
+
+    texto_recibos = ""
+    texto_formato_3 = ""
+
+    # Índices 2 a 5 equivalen a las páginas 3 a 6.
+    limite = min(
+        total_paginas,
+        6
+    )
+
+    for indice in range(2, limite):
+
+        texto_pagina = extraer_texto_pagina(
+            pdf,
+            indice
+        )
+
+        texto_normalizado = normalizar_texto(
+            texto_pagina
+        )
+
+        if (
+            not texto_recibos
+            and "RECIBOS RECLAMADOS" in texto_normalizado
+        ):
+            texto_recibos = texto_pagina
+
+        if (
+            not texto_formato_3
+            and "FORMATO 3" in texto_normalizado
+            and "DATOS DE LA FACTURACION" in texto_normalizado
+        ):
+            texto_formato_3 = texto_pagina
+
+        # Se detiene inmediatamente cuando encuentra ambos.
+        if texto_recibos and texto_formato_3:
+            break
+
+    return texto_recibos, texto_formato_3
 
 def limpiar_direccion(direccion):
     if not direccion:
@@ -751,16 +795,12 @@ def obtener_datos_formato_2(pdf_formato_2):
         0
     )
 
-    # Página 3: lista de recibos reclamados
-    texto_recibos = extraer_texto_pagina(
-        pdf_formato_2,
-        2
-    )
-
-    # Página 4: Formato 3
-    texto_formato_3 = extraer_texto_pagina(
-        pdf_formato_2,
-        3
+    # Busca Recibos Reclamados y Formato 3
+    # entre las páginas 3 y 6.
+    texto_recibos, texto_formato_3 = (
+        extraer_recibos_y_formato_3(
+            pdf_formato_2
+        )
     )
 
     datos = obtener_datos(
