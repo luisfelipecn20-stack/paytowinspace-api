@@ -25,6 +25,70 @@ def limpiar_espacios(texto):
 # EXTRACTORES
 # ==========================
 
+def limpiar_direccion(direccion):
+    if not direccion:
+        return ""
+
+    direccion = limpiar_espacios(direccion)
+
+    # Eliminar encabezados correspondientes a las columnas del formulario
+    direccion = re.sub(
+        r"\(\s*Calle\s*,?\s*Jir[oó]n\s*,?\s*Avenida\s*\)"
+        r"\s*N[°º]?\s*Mz\s*Lote",
+        " ",
+        direccion,
+        flags=re.IGNORECASE
+    )
+
+    direccion = re.sub(
+        r"\(\s*Urbanizaci[oó]n\s*,?\s*Barrio\s*\)"
+        r"\s*Provincia\s*Distrito",
+        " ",
+        direccion,
+        flags=re.IGNORECASE
+    )
+
+    # Respaldo por si las etiquetas aparecen separadas
+    direccion = re.sub(
+        r"\(\s*Calle\s*,?\s*Jir[oó]n\s*,?\s*Avenida\s*\)",
+        " ",
+        direccion,
+        flags=re.IGNORECASE
+    )
+
+    direccion = re.sub(
+        r"\(\s*Urbanizaci[oó]n\s*,?\s*Barrio\s*\)",
+        " ",
+        direccion,
+        flags=re.IGNORECASE
+    )
+
+    direccion = re.sub(
+        r"\bProvincia\b|\bDistrito\b",
+        " ",
+        direccion,
+        flags=re.IGNORECASE
+    )
+
+    # Eliminar símbolo suelto producido por N°
+    direccion = re.sub(r"(?<!\w)[°º](?!\w)", " ", direccion)
+
+    # Eliminar correos capturados accidentalmente
+    direccion = re.sub(
+        r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b",
+        " ",
+        direccion
+    )
+
+    # Eliminar teléfonos o códigos capturados al final
+    direccion = re.sub(
+        r"\s+\d{6,}(?:\s*/\s*\d{6,})*\s*$",
+        "",
+        direccion
+    )
+
+    return limpiar_espacios(direccion)
+
 def extraer_re(texto):
     return buscar(
         r"(RE\d+)",
@@ -214,7 +278,7 @@ def extraer_direccion_suministro(texto):
 
     direccion = limpiar_espacios(" ".join(lineas))
 
-    return direccion
+    return limpiar_direccion(direccion)
 
 def extraer_direccion_procesal(texto):
 
@@ -257,7 +321,7 @@ def extraer_direccion_procesal(texto):
             flags=re.IGNORECASE
         )
 
-    return limpiar_espacios(direccion)
+    return limpiar_direccion(direccion)
 
 def extraer_correo(texto):
 
@@ -713,6 +777,14 @@ def obtener_datos_formato_2(pdf_formato_2):
                 campos_visuales["solicita_contraste"]
             )
 
+    datos["direccion_suministro"] = limpiar_direccion(
+        datos.get("direccion_suministro", "")
+    )
+
+    datos["direccion_procesal"] = limpiar_direccion(
+        datos.get("direccion_procesal", "")
+    )
+    
     print(datos)
 
     return datos
