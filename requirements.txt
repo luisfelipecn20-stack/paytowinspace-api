@@ -10,3 +10,4 @@ pillow
 pdf2image
 msal
 requests
+pypdf
