@@ -431,13 +431,24 @@ def extraer_direccion_procesal(texto):
 
 def extraer_correo(texto):
 
-    correo = buscar(
-        r"([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})",
-        texto
+    # Elimina tildes introducidas por el OCR.
+    texto_sin_tildes = unicodedata.normalize(
+        "NFD",
+        texto or ""
     )
 
-    return correo
+    texto_sin_tildes = "".join(
+        caracter
+        for caracter in texto_sin_tildes
+        if unicodedata.category(caracter) != "Mn"
+    )
 
+    correo = buscar(
+        r"([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})",
+        texto_sin_tildes
+    )
+
+    return correo.lower()
 
 def extraer_tiene_correo(texto):
 
@@ -537,6 +548,44 @@ def extraer_fecha_reclamo(texto):
     if coincidencia:
         return coincidencia.group(1).strip()
 
+    # Fecha escrita con el mes abreviado:
+    # 02 JUL. 2026
+    coincidencia_textual = re.search(
+        r"\b(\d{1,2})\s+"
+        r"(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SET|SEP|OCT|NOV|DIC)"
+        r"\.?\s+"
+        r"(\d{4})"
+        r"\s+Fecha\b",
+        texto,
+        re.IGNORECASE
+    )
+
+    if coincidencia_textual:
+
+        meses_numero = {
+            "ENE": "01",
+            "FEB": "02",
+            "MAR": "03",
+            "ABR": "04",
+            "MAY": "05",
+            "JUN": "06",
+            "JUL": "07",
+            "AGO": "08",
+            "SET": "09",
+            "SEP": "09",
+            "OCT": "10",
+            "NOV": "11",
+            "DIC": "12"
+        }
+
+        dia = coincidencia_textual.group(1).zfill(2)
+        mes = meses_numero[
+            coincidencia_textual.group(2).upper()
+        ]
+        anio = coincidencia_textual.group(3)
+
+        return f"{dia}/{mes}/{anio}"
+    
     # Respaldo: toma la última fecha encontrada.
     fechas = re.findall(
         r"\b\d{2}/\d{2}/\d{4}\b",
@@ -867,12 +916,9 @@ def obtener_datos_formato_2(pdf_formato_2):
         # tiene prioridad para reclamante y direcciones.
         if es_escaneado:
 
-            # Vision completa el reclamante solamente
-            # cuando el OCR no pudo obtenerlo.
-            if (
-                not datos.get("reclamante")
-                and campos_visuales.get("reclamante")
-            ):
+            # En documentos escaneados, Vision tiene
+            # prioridad para obtener el reclamante completo.
+            if campos_visuales.get("reclamante"):
                 datos["reclamante"] = (
                     campos_visuales["reclamante"]
                 )
@@ -920,6 +966,10 @@ def obtener_datos_formato_2(pdf_formato_2):
             datos["solicita_contraste"] = (
                 campos_visuales["solicita_contraste"]
             )
+
+    datos["reclamante"] = limpiar_espacios(
+        datos.get("reclamante", "")
+    ).upper()
 
     datos["direccion_suministro"] = limpiar_direccion(
         datos.get("direccion_suministro", "")
