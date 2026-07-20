@@ -637,10 +637,6 @@ def extraer_meses_reclamados(texto_formato_2, texto_recibos):
         if periodo not in meses_reclamados:
             meses_reclamados.append(periodo)
 
-        # Por ahora, PEIAD procesará como máximo tres meses.
-        if len(meses_reclamados) == 3:
-            break
-
     if meses_reclamados:
         return meses_reclamados
 
@@ -669,9 +665,16 @@ def extraer_datos_formato_3(
         rf"(\d{{4}})\s+"
         rf".*?"
         rf"\d{{2}}/\d{{2}}/\d{{4}}\s+"
-        rf"(?:Lectura|Promedio|Asignado|CM)\s+"
+        rf"(?:"
+        rf"Lectura|"
+        rf"Promedio|"
+        rf"Asignado|"
+        rf"Asignaci[oó]n|"
+        rf"Asig\.?\s*Consumo|"
+        rf"CM"
+        rf")\s+"
         rf"\d+(?:[.,]\d+)?\s+"
-        rf"(\d+)\b",
+        rf"(\d+(?:[.,]\d+)?)\b",
         re.IGNORECASE
     )
 
