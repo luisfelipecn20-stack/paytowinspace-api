@@ -185,25 +185,47 @@ def extraer_re_validado(
     texto_formato_3
 ):
 
-    valores = [
-        extraer_re(texto_formato_2),
-        extraer_re(texto_recibos),
-        extraer_re(texto_formato_3)
-    ]
+    re_formato_2 = extraer_re(
+        texto_formato_2
+    )
+
+    re_recibos = extraer_re(
+        texto_recibos
+    )
+
+    re_formato_3 = extraer_re(
+        texto_formato_3
+    )
 
     valores = [
         valor
-        for valor in valores
+        for valor in [
+            re_formato_2,
+            re_recibos,
+            re_formato_3
+        ]
         if valor
     ]
 
     if not valores:
         return ""
 
-    return max(
-        valores,
-        key=valores.count
-    )
+    # Si un RE aparece dos o más veces,
+    # se considera validado por mayoría.
+    for valor in valores:
+
+        if valores.count(valor) >= 2:
+            return valor
+
+    # Si no existe mayoría, se prioriza la lista
+    # de Recibos Reclamados por ser más legible.
+    if re_recibos:
+        return re_recibos
+
+    if re_formato_3:
+        return re_formato_3
+
+    return re_formato_2
     
 def extraer_niss(texto):
 
