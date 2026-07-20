@@ -109,11 +109,23 @@ def extraer_texto_pdf(contenido_pdf):
 
     texto = ""
 
-    for pagina in pdf:
+    try:
 
-        texto += pagina.get_text()
+        for pagina in pdf:
 
-    pdf.close()
+            texto_pagina = pagina.get_text(
+                "text",
+                sort=True
+            )
+
+            texto += (
+                texto_pagina
+                + "\n"
+            )
+
+    finally:
+
+        pdf.close()
 
     return texto
 
