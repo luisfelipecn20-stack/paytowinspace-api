@@ -75,38 +75,10 @@ def extraer_regimen_desde_texto(texto):
     if not isinstance(texto, str):
         return []
 
-    inicio = re.search(
-        (
-            r"II\.\s*"
-            r"R[ÉE]GIMEN\s+DE\s+"
-            r"FACTURACI[ÓO]N\s+APLICADO"
-        ),
-        texto,
-        re.IGNORECASE
-    )
-
-    if not inicio:
-        return []
-
-    seccion = texto[
-        inicio.end():
-    ]
-
-    fin = re.search(
-        r"III\.",
-        seccion,
-        re.IGNORECASE
-    )
-
-    if fin:
-        seccion = seccion[
-            :fin.start()
-        ]
-
-    seccion = re.sub(
+    texto_plano = re.sub(
         r"\s+",
         " ",
-        seccion
+        texto
     ).strip()
 
     patron_fila = re.compile(
@@ -130,13 +102,15 @@ def extraer_regimen_desde_texto(texto):
     regimen = []
 
     for coincidencia in patron_fila.finditer(
-        seccion
+        texto_plano
     ):
 
         mes = coincidencia.group(1)
 
-        # Grupo 4: Lectura acumulada.
-        # Grupo 5: M3 facturado.
+        # Grupo 4: lectura acumulada.
+        lectura = coincidencia.group(4)
+
+        # Grupo 5: volumen facturado.
         m3_facturado = coincidencia.group(5)
 
         regimen.append(
