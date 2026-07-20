@@ -194,7 +194,13 @@ def obtener_datos_informe_facturacion(pdf):
         fuente = "NO_ENCONTRADO"
 
     return {
-        "regimen_facturacion": regimen,
-        "fuente": fuente,
-        "respuesta_gpt": respuesta_gpt
-    }
+    "regimen_facturacion": regimen,
+    "fuente": fuente,
+    "respuesta_gpt": respuesta_gpt,
+    "diagnostico_caracteres": len(
+        texto_pdf
+    ),
+    "diagnostico_texto": texto_pdf[
+        :2000
+    ]
+}
