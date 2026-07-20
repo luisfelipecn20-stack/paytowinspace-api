@@ -4,6 +4,9 @@ from funciones_pdf import (
     pagina_es_escaneada,
     contar_paginas_pdf
 )
+
+from funciones_visto import generar_visto
+
 import re
 import unicodedata
 
