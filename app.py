@@ -184,12 +184,10 @@ async def analizar_informe_facturacion(
 
     contenido = await archivo.read()
 
-    imagenes = convertir_pdf_a_imagenes(
-        contenido
-    )
-
-    datos_informe = obtener_datos_informe_facturacion(
-        imagenes[0]
+    datos_informe = (
+        obtener_datos_informe_facturacion(
+            contenido
+        )
     )
 
     return datos_informe
