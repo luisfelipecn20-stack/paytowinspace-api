@@ -27,6 +27,10 @@ from funciones_considerando_2 import (
     obtener_referencia_reclamante
 )
 
+from funciones_formato_4 import (
+    obtener_datos_formato_4
+)
+
 app = FastAPI()
 
 
@@ -177,6 +181,19 @@ async def analizar_formato_2(
     )
 
     return datos_formato_2
+
+@app.post("/analizar_formato_4")
+async def analizar_formato_4(
+    archivo: UploadFile = File(...)
+):
+
+    contenido = await archivo.read()
+
+    datos_formato_4 = obtener_datos_formato_4(
+        contenido
+    )
+
+    return datos_formato_4
 
 @app.post("/generar_considerando_2")
 async def generar_considerando_2_api(
