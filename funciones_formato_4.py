@@ -331,6 +331,20 @@ def determinar_continuidad(
     texto
 ):
 
+    # La ausencia no detiene el reclamo.
+    if resultado_audiencia == "AUSENTE":
+        return "SI"
+
+    # Si no existió acuerdo, continúa
+    # el procedimiento administrativo.
+    if resultado_audiencia == "SIN_ACUERDO":
+        return "SI"
+
+    # Una solicitud posterior de contraste
+    # también significa que el reclamo continúa.
+    if solicita_contraste_acta == "SI":
+        return "SI"
+
     if resultado_audiencia in {
         "ACUERDO",
         "DESISTIMIENTO"
@@ -340,15 +354,6 @@ def determinar_continuidad(
     if subsiste_reclamo == "NO":
         return "NO"
 
-    if resultado_audiencia in {
-        "AUSENTE",
-        "SIN_ACUERDO"
-    }:
-        return "SI"
-
-    if solicita_contraste_acta == "SI":
-        return "SI"
-
     if subsiste_reclamo == "SI":
         return "SI"
 
@@ -356,7 +361,6 @@ def determinar_continuidad(
         return "SI"
 
     return ""
-
 
 def obtener_datos_formato_4(pdf):
 
@@ -484,6 +488,43 @@ def obtener_datos_formato_4(pdf):
         )
     )
 
+    # Conservamos la lectura original realizada
+    # por Visión para fines de validación.
+    subsiste_reclamo_vision = (
+        resultado["subsiste_reclamo"]
+    )
+
+    validacion_subsiste_reclamo = (
+        "LECTURA_DIRECTA"
+    )
+
+    # Si hubo ausencia o no existió acuerdo,
+    # el procedimiento debe continuar.
+    if resultado_audiencia in {
+        "AUSENTE",
+        "SIN_ACUERDO"
+    }:
+
+        if subsiste_reclamo_vision == "NO":
+
+            validacion_subsiste_reclamo = (
+                "CORREGIDO_POR_RESULTADO_AUDIENCIA"
+            )
+
+        elif not subsiste_reclamo_vision:
+
+            validacion_subsiste_reclamo = (
+                "INFERIDO_POR_RESULTADO_AUDIENCIA"
+            )
+
+        else:
+
+            validacion_subsiste_reclamo = (
+                "COINCIDE_CON_RESULTADO_AUDIENCIA"
+            )
+
+        resultado["subsiste_reclamo"] = "SI"
+
     continua_reclamo = determinar_continuidad(
         resultado_audiencia,
         resultado["subsiste_reclamo"],
@@ -501,6 +542,12 @@ def obtener_datos_formato_4(pdf):
 
     resultado.update(
         {
+            "subsiste_reclamo_vision": (
+                subsiste_reclamo_vision
+            ),
+            "validacion_subsiste_reclamo": (
+                validacion_subsiste_reclamo
+            ),
             "resultado_audiencia": (
                 resultado_audiencia
             ),
