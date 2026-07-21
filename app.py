@@ -17,7 +17,10 @@ from funciones_formato_2 import obtener_datos_formato_2
 from obtener_datos_informe_facturacion import obtener_datos_informe_facturacion
 from sharepoint import probar_conexion
 from typing import Optional
-from funciones_considerando_4 import generar_considerando_4
+from funciones_considerando_4 import (
+    generar_considerando_4,
+    combinar_datos_facturacion
+)
 
 app = FastAPI()
 
@@ -221,8 +224,7 @@ async def generar_considerando_4_api(
     regimen_facturacion = []
     recibos_formato_3 = []
 
-    # Fuente principal:
-    # Informe Técnico de Facturación.
+    # Datos del Informe Técnico.
     if archivo_informe is not None:
 
         contenido_informe = (
@@ -244,8 +246,7 @@ async def generar_considerando_4_api(
                 )
             )
 
-    # Fuente de respaldo:
-    # información del Formato 3.
+    # Datos del Formato 3.
     if archivo_formato_2 is not None:
 
         contenido_formato_2 = (
@@ -267,6 +268,32 @@ async def generar_considerando_4_api(
                 )
             )
 
+    # Comparación entre las dos fuentes.
+    registros_validados = (
+        combinar_datos_facturacion(
+            regimen_facturacion=regimen_facturacion,
+            recibos_formato_3=recibos_formato_3
+        )
+    )
+
+    validacion_facturacion = [
+        {
+            "mes": registro["mes_original"],
+            "m3_informe": registro["m3_informe"],
+            "m3_formato_3": registro["m3_formato_3"],
+            "m3_utilizado": registro["m3"],
+            "estado": registro["estado_validacion"]
+        }
+        for registro in registros_validados
+    ]
+
+    tiene_diferencias = any(
+        registro["estado_validacion"].startswith(
+            "DIFERENCIA"
+        )
+        for registro in registros_validados
+    )
+
     considerando_4 = generar_considerando_4(
         regimen_facturacion=regimen_facturacion,
         recibos_formato_3=recibos_formato_3
@@ -281,10 +308,12 @@ async def generar_considerando_4_api(
         "estado": estado,
         "regimen_facturacion": regimen_facturacion,
         "recibos_formato_3": recibos_formato_3,
+        "validacion_facturacion": validacion_facturacion,
+        "tiene_diferencias": tiene_diferencias,
         "considerando_4": considerando_4,
         "datos_informe": datos_informe
     }
-
+    
 @app.post("/buscar_documentos_pdf")
 async def buscar_documentos_pdf_api(
     archivo: UploadFile = File(...)
