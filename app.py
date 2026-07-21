@@ -28,7 +28,8 @@ from funciones_considerando_2 import (
 )
 
 from funciones_formato_4 import (
-    obtener_datos_formato_4
+    obtener_datos_formato_4,
+    consolidar_formato_2_y_4
 )
 
 app = FastAPI()
@@ -194,6 +195,43 @@ async def analizar_formato_4(
     )
 
     return datos_formato_4
+
+@app.post("/validar_formatos_2_y_4")
+async def validar_formatos_2_y_4(
+    archivo_formato_2: UploadFile = File(...),
+    archivo_formato_4: UploadFile = File(...)
+):
+
+    contenido_formato_2 = (
+        await archivo_formato_2.read()
+    )
+
+    contenido_formato_4 = (
+        await archivo_formato_4.read()
+    )
+
+    datos_formato_2 = obtener_datos_formato_2(
+        contenido_formato_2
+    )
+
+    datos_formato_4 = obtener_datos_formato_4(
+        contenido_formato_4
+    )
+
+    validacion = consolidar_formato_2_y_4(
+        datos_formato_2=datos_formato_2,
+        datos_formato_4=datos_formato_4,
+        nombre_archivo_formato_4=(
+            archivo_formato_4.filename
+            or ""
+        )
+    )
+
+    return {
+        "datos_formato_2": datos_formato_2,
+        "datos_formato_4": datos_formato_4,
+        "validacion": validacion
+    }
 
 @app.post("/generar_considerando_2")
 async def generar_considerando_2_api(
