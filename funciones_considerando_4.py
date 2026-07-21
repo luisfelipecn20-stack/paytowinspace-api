@@ -328,38 +328,10 @@ def generar_considerando_4(
         volumenes
     )
 
-    fuentes = {
-        registro["fuente"]
-        for registro in registros
-    }
-
-    if fuentes == {
-        "INFORME_FACTURACION"
-    }:
-
-        inicio = (
-            "Con informe técnico del Grupo "
-            "Funcional de Medición y Facturación"
-        )
-
-    elif fuentes == {
-        "FORMATO_3"
-    }:
-
-        inicio = (
-            "De la revisión de la información "
-            "de facturación consignada en el "
-            "Formato 3"
-        )
-
-    else:
-
-        inicio = (
-            "De la revisión del informe técnico "
-            "del Grupo Funcional de Medición y "
-            "Facturación, complementado con la "
-            "información consignada en el Formato 3"
-        )
+    inicio = (
+        "Con informe técnico del Grupo "
+        "Funcional de Medición y Facturación"
+    )
 
     if len(registros) == 1:
 
