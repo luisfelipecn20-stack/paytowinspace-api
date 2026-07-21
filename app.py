@@ -22,6 +22,11 @@ from funciones_considerando_4 import (
     combinar_datos_facturacion
 )
 
+from funciones_considerando_2 import (
+    generar_considerando_2,
+    obtener_referencia_reclamante
+)
+
 app = FastAPI()
 
 
@@ -172,6 +177,67 @@ async def analizar_formato_2(
     )
 
     return datos_formato_2
+
+@app.post("/generar_considerando_2")
+async def generar_considerando_2_api(
+    archivo: UploadFile = File(...)
+):
+
+    contenido = await archivo.read()
+
+    datos_formato_2 = obtener_datos_formato_2(
+        contenido
+    )
+
+    if not isinstance(
+        datos_formato_2,
+        dict
+    ):
+        return {
+            "estado": "ERROR_FORMATO_2",
+            "considerando_2": ""
+        }
+
+    reclamante = datos_formato_2.get(
+        "reclamante",
+        ""
+    )
+
+    genero_reclamante = datos_formato_2.get(
+        "genero_reclamante",
+        ""
+    )
+
+    referencia_reclamante = (
+        obtener_referencia_reclamante(
+            reclamante,
+            genero_reclamante
+        )
+    )
+
+    considerando_2 = generar_considerando_2(
+        datos_formato_2
+    )
+
+    if considerando_2:
+        estado = "GENERADO"
+    else:
+        estado = "PENDIENTE_SIN_DATOS"
+
+    return {
+        "estado": estado,
+        "reclamante": reclamante,
+        "canal_atencion": datos_formato_2.get(
+            "canal_atencion",
+            ""
+        ),
+        "solicita_contraste": datos_formato_2.get(
+            "solicita_contraste",
+            ""
+        ),
+        "referencia_reclamante": referencia_reclamante,
+        "considerando_2": considerando_2
+    }
 
 @app.get("/generar_considerando_3")
 def generar_considerando_3_api():
