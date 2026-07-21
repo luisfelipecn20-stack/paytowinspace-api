@@ -16,6 +16,8 @@ from funciones_considerando_3 import generar_considerando_3
 from funciones_formato_2 import obtener_datos_formato_2
 from obtener_datos_informe_facturacion import obtener_datos_informe_facturacion
 from sharepoint import probar_conexion
+from typing import Optional
+from funciones_considerando_4 import generar_considerando_4
 
 app = FastAPI()
 
@@ -205,6 +207,82 @@ async def extraer_texto_pdf_api(
 
     return {
         "texto": texto
+    }
+
+@app.post("/generar_considerando_4")
+async def generar_considerando_4_api(
+    archivo_informe: Optional[UploadFile] = File(None),
+    archivo_formato_2: Optional[UploadFile] = File(None)
+):
+
+    datos_informe = {}
+    datos_formato_2 = {}
+
+    regimen_facturacion = []
+    recibos_formato_3 = []
+
+    # Fuente principal:
+    # Informe Técnico de Facturación.
+    if archivo_informe is not None:
+
+        contenido_informe = (
+            await archivo_informe.read()
+        )
+
+        datos_informe = (
+            obtener_datos_informe_facturacion(
+                contenido_informe
+            )
+        )
+
+        if isinstance(datos_informe, dict):
+
+            regimen_facturacion = (
+                datos_informe.get(
+                    "regimen_facturacion",
+                    []
+                )
+            )
+
+    # Fuente de respaldo:
+    # información del Formato 3.
+    if archivo_formato_2 is not None:
+
+        contenido_formato_2 = (
+            await archivo_formato_2.read()
+        )
+
+        datos_formato_2 = (
+            obtener_datos_formato_2(
+                contenido_formato_2
+            )
+        )
+
+        if isinstance(datos_formato_2, dict):
+
+            recibos_formato_3 = (
+                datos_formato_2.get(
+                    "recibos_formato_3",
+                    []
+                )
+            )
+
+    considerando_4 = generar_considerando_4(
+        regimen_facturacion=regimen_facturacion,
+        recibos_formato_3=recibos_formato_3
+    )
+
+    if considerando_4:
+        estado = "GENERADO"
+    else:
+        estado = "PENDIENTE_SIN_DATOS"
+
+    return {
+        "estado": estado,
+        "regimen_facturacion": regimen_facturacion,
+        "recibos_formato_3": recibos_formato_3,
+        "considerando_4": considerando_4,
+        "datos_informe": datos_informe
     }
 
 @app.post("/buscar_documentos_pdf")
