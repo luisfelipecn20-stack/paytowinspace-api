@@ -516,3 +516,467 @@ def obtener_datos_formato_4(pdf):
     )
 
     return resultado
+
+def extraer_re_nombre_archivo(
+    nombre_archivo
+):
+
+    return limpiar_re(
+        nombre_archivo
+    )
+
+def obtener_re_formato_2(
+    datos_formato_2
+):
+
+    campos_posibles = [
+        "re",
+        "numero_re",
+        "numero_reclamo",
+        "numero_reclamacion"
+    ]
+
+    for campo in campos_posibles:
+
+        re_encontrado = limpiar_re(
+            datos_formato_2.get(
+                campo,
+                ""
+            )
+        )
+
+        if re_encontrado:
+            return re_encontrado
+
+    return ""
+
+def consolidar_formato_2_y_4(
+    datos_formato_2,
+    datos_formato_4,
+    nombre_archivo_formato_4=""
+):
+
+    if not isinstance(
+        datos_formato_2,
+        dict
+    ):
+        datos_formato_2 = {}
+
+    if not isinstance(
+        datos_formato_4,
+        dict
+    ):
+        datos_formato_4 = {}
+
+    # ==========================
+    # VALIDACIÓN DEL RE
+    # ==========================
+
+    re_formato_2 = obtener_re_formato_2(
+        datos_formato_2
+    )
+
+    re_formato_4_vision = limpiar_re(
+        datos_formato_4.get(
+            "re",
+            ""
+        )
+    )
+
+    re_archivo_formato_4 = (
+        extraer_re_nombre_archivo(
+            nombre_archivo_formato_4
+        )
+    )
+
+    error_formato_4 = datos_formato_4.get(
+        "error",
+        ""
+    )
+
+    acta_corresponde_expediente = False
+
+    if error_formato_4:
+
+        validacion_re = (
+            "ERROR_LECTURA_FORMATO_4"
+        )
+
+    elif not re_formato_2:
+
+        validacion_re = (
+            "SIN_RE_FORMATO_2"
+        )
+
+    elif re_archivo_formato_4:
+
+        if (
+            re_archivo_formato_4
+            != re_formato_2
+        ):
+
+            validacion_re = (
+                "ARCHIVO_NO_CORRESPONDE"
+            )
+
+        elif (
+            re_formato_4_vision
+            == re_formato_2
+        ):
+
+            validacion_re = "COINCIDE"
+            acta_corresponde_expediente = True
+
+        elif re_formato_4_vision:
+
+            validacion_re = (
+                "COINCIDE_ARCHIVO_"
+                "DIFERENCIA_VISION"
+            )
+
+            acta_corresponde_expediente = True
+
+        else:
+
+            validacion_re = (
+                "COINCIDE_ARCHIVO_"
+                "SIN_RE_VISION"
+            )
+
+            acta_corresponde_expediente = True
+
+    elif (
+        re_formato_4_vision
+        == re_formato_2
+    ):
+
+        validacion_re = (
+            "COINCIDE_VISION"
+        )
+
+        acta_corresponde_expediente = True
+
+    elif re_formato_4_vision:
+
+        validacion_re = (
+            "DIFERENCIA_RE_"
+            "REQUIERE_REVISION"
+        )
+
+    else:
+
+        validacion_re = (
+            "SIN_RE_FORMATO_4"
+        )
+
+    # El RE definitivo siempre proviene
+    # del Formato 2.
+    re_final = re_formato_2
+
+    # ==========================
+    # VALIDACIÓN DE LA FECHA
+    # ==========================
+
+    fecha_formato_2 = limpiar_fecha(
+        datos_formato_2.get(
+            "fecha_audiencia",
+            ""
+        )
+    )
+
+    fecha_formato_4 = limpiar_fecha(
+        datos_formato_4.get(
+            "fecha_audiencia",
+            ""
+        )
+    )
+
+    if fecha_formato_2 and fecha_formato_4:
+
+        if fecha_formato_2 == fecha_formato_4:
+
+            validacion_fecha = "COINCIDE"
+
+        else:
+
+            validacion_fecha = "DIFERENCIA"
+
+    elif fecha_formato_2:
+
+        validacion_fecha = (
+            "SIN_FECHA_FORMATO_4"
+        )
+
+    elif fecha_formato_4:
+
+        validacion_fecha = (
+            "SIN_FECHA_FORMATO_2"
+        )
+
+    else:
+
+        validacion_fecha = (
+            "SIN_FECHAS"
+        )
+
+    # La fecha principal continúa siendo
+    # la programada en el Formato 2.
+    fecha_audiencia_final = (
+        fecha_formato_2
+        or fecha_formato_4
+    )
+
+    # ==========================
+    # DIRECCIÓN PROCESAL
+    # ==========================
+
+    direccion_formato_2 = limpiar_valor(
+        datos_formato_2.get(
+            "direccion_procesal",
+            ""
+        )
+    )
+
+    direccion_formato_4 = limpiar_valor(
+        datos_formato_4.get(
+            "direccion_procesal_acta",
+            ""
+        )
+    )
+
+    if (
+        acta_corresponde_expediente
+        and direccion_formato_4
+    ):
+
+        direccion_procesal_final = (
+            direccion_formato_4
+        )
+
+        fuente_direccion_procesal = (
+            "FORMATO_4"
+        )
+
+    else:
+
+        direccion_procesal_final = (
+            direccion_formato_2
+        )
+
+        if direccion_formato_2:
+
+            fuente_direccion_procesal = (
+                "FORMATO_2"
+            )
+
+        else:
+
+            fuente_direccion_procesal = ""
+
+    # ==========================
+    # CORREO ELECTRÓNICO
+    # ==========================
+
+    correo_formato_2 = limpiar_valor(
+        datos_formato_2.get(
+            "correo_electronico",
+            ""
+        )
+    )
+
+    correo_formato_4 = limpiar_valor(
+        datos_formato_4.get(
+            "correo_electronico_acta",
+            ""
+        )
+    )
+
+    if (
+        acta_corresponde_expediente
+        and correo_formato_4
+    ):
+
+        correo_final = correo_formato_4
+        fuente_correo = "FORMATO_4"
+
+    else:
+
+        correo_final = correo_formato_2
+
+        if correo_formato_2:
+            fuente_correo = "FORMATO_2"
+        else:
+            fuente_correo = ""
+
+    # ==========================
+    # CONTRASTACIÓN
+    # ==========================
+
+    contraste_formato_2 = normalizar_texto(
+        datos_formato_2.get(
+            "solicita_contraste",
+            ""
+        )
+    )
+
+    contraste_formato_4 = normalizar_texto(
+        datos_formato_4.get(
+            "solicita_contraste_acta",
+            ""
+        )
+    )
+
+    if contraste_formato_2 not in {
+        "SI",
+        "NO"
+    }:
+        contraste_formato_2 = ""
+
+    if contraste_formato_4 not in {
+        "SI",
+        "NO"
+    }:
+        contraste_formato_4 = ""
+
+    if (
+        acta_corresponde_expediente
+        and contraste_formato_4
+    ):
+
+        solicita_contraste_final = (
+            contraste_formato_4
+        )
+
+        fuente_solicita_contraste = (
+            "FORMATO_4"
+        )
+
+    else:
+
+        solicita_contraste_final = (
+            contraste_formato_2
+        )
+
+        if contraste_formato_2:
+
+            fuente_solicita_contraste = (
+                "FORMATO_2"
+            )
+
+        else:
+
+            fuente_solicita_contraste = ""
+
+    # ==========================
+    # RESULTADO DE LA AUDIENCIA
+    # ==========================
+
+    if acta_corresponde_expediente:
+
+        resultado_audiencia = limpiar_valor(
+            datos_formato_4.get(
+                "resultado_audiencia",
+                ""
+            )
+        )
+
+        continua_reclamo = normalizar_texto(
+            datos_formato_4.get(
+                "continua_reclamo",
+                ""
+            )
+        )
+
+    else:
+
+        resultado_audiencia = ""
+        continua_reclamo = ""
+
+    # ==========================
+    # ESTADO GENERAL
+    # ==========================
+
+    requiere_revision = (
+        not acta_corresponde_expediente
+        or validacion_fecha == "DIFERENCIA"
+    )
+
+    if not acta_corresponde_expediente:
+
+        estado_validacion = (
+            "ACTA_NO_VALIDADA"
+        )
+
+    elif validacion_fecha == "DIFERENCIA":
+
+        estado_validacion = (
+            "VALIDADO_CON_DIFERENCIA_FECHA"
+        )
+
+    else:
+
+        estado_validacion = "VALIDADO"
+
+    return {
+        "estado_validacion": estado_validacion,
+        "requiere_revision": requiere_revision,
+
+        "re_formato_2": re_formato_2,
+        "re_formato_4_vision": (
+            re_formato_4_vision
+        ),
+        "re_archivo_formato_4": (
+            re_archivo_formato_4
+        ),
+        "validacion_re": validacion_re,
+        "re_final": re_final,
+
+        "fecha_audiencia_formato_2": (
+            fecha_formato_2
+        ),
+        "fecha_audiencia_formato_4": (
+            fecha_formato_4
+        ),
+        "validacion_fecha_audiencia": (
+            validacion_fecha
+        ),
+        "fecha_audiencia_final": (
+            fecha_audiencia_final
+        ),
+
+        "direccion_procesal_formato_2": (
+            direccion_formato_2
+        ),
+        "direccion_procesal_formato_4": (
+            direccion_formato_4
+        ),
+        "direccion_procesal_final": (
+            direccion_procesal_final
+        ),
+        "fuente_direccion_procesal": (
+            fuente_direccion_procesal
+        ),
+
+        "correo_formato_2": correo_formato_2,
+        "correo_formato_4": correo_formato_4,
+        "correo_final": correo_final,
+        "fuente_correo": fuente_correo,
+
+        "solicita_contraste_formato_2": (
+            contraste_formato_2
+        ),
+        "solicita_contraste_formato_4": (
+            contraste_formato_4
+        ),
+        "solicita_contraste_final": (
+            solicita_contraste_final
+        ),
+        "fuente_solicita_contraste": (
+            fuente_solicita_contraste
+        ),
+
+        "resultado_audiencia": (
+            resultado_audiencia
+        ),
+        "continua_reclamo": continua_reclamo
+    }
