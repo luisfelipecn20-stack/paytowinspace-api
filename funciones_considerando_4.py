@@ -137,26 +137,44 @@ def combinar_datos_facturacion(
 
     regimen_facturacion = (
         regimen_facturacion
-        if isinstance(
-            regimen_facturacion,
-            list
-        )
+        if isinstance(regimen_facturacion, list)
         else []
     )
 
     recibos_formato_3 = (
         recibos_formato_3
-        if isinstance(
-            recibos_formato_3,
-            list
-        )
+        if isinstance(recibos_formato_3, list)
         else []
     )
 
-    registros = {}
+    datos_informe = {}
+    datos_formato_3 = {}
 
-    # Formato 3:
-    # fuente de respaldo.
+    # Datos del Informe Técnico.
+    for fila in regimen_facturacion:
+
+        if not isinstance(fila, dict):
+            continue
+
+        mes = str(
+            fila.get("mes", "")
+        ).strip()
+
+        m3 = limpiar_m3(
+            fila.get("m3_facturado", "")
+        )
+
+        if not mes or not m3:
+            continue
+
+        clave_mes = obtener_clave_mes(mes)
+
+        datos_informe[clave_mes] = {
+            "mes": mes,
+            "m3": m3
+        }
+
+    # Datos del Formato 3.
     for fila in recibos_formato_3:
 
         if not isinstance(fila, dict):
@@ -169,63 +187,114 @@ def combinar_datos_facturacion(
         m3 = limpiar_m3(
             fila.get(
                 "m3",
-                fila.get(
-                    "m3_facturado",
-                    ""
+                fila.get("m3_facturado", "")
+            )
+        )
+
+        if not mes or not m3:
+            continue
+
+        clave_mes = obtener_clave_mes(mes)
+
+        datos_formato_3[clave_mes] = {
+            "mes": mes,
+            "m3": m3
+        }
+
+    claves_meses = set(
+        datos_informe.keys()
+    ) | set(
+        datos_formato_3.keys()
+    )
+
+    registros = []
+
+    for clave_mes in claves_meses:
+
+        informe = datos_informe.get(
+            clave_mes
+        )
+
+        formato_3 = datos_formato_3.get(
+            clave_mes
+        )
+
+        m3_informe = (
+            informe["m3"]
+            if informe
+            else ""
+        )
+
+        m3_formato_3 = (
+            formato_3["m3"]
+            if formato_3
+            else ""
+        )
+
+        if informe and formato_3:
+
+            try:
+
+                coinciden = (
+                    float(
+                        m3_informe.replace(",", ".")
+                    )
+                    ==
+                    float(
+                        m3_formato_3.replace(",", ".")
+                    )
                 )
-            )
+
+            except ValueError:
+
+                coinciden = (
+                    m3_informe
+                    ==
+                    m3_formato_3
+                )
+
+            if coinciden:
+
+                m3_utilizado = m3_formato_3
+                estado = "COINCIDE"
+
+            else:
+
+                # Si existe diferencia,
+                # prevalece el Formato 3.
+                m3_utilizado = m3_formato_3
+                estado = (
+                    "DIFERENCIA_"
+                    "FORMATO_3_PRIORITARIO"
+                )
+
+            mes_original = formato_3["mes"]
+
+        elif formato_3:
+
+            m3_utilizado = m3_formato_3
+            mes_original = formato_3["mes"]
+            estado = "SOLO_FORMATO_3"
+
+        else:
+
+            m3_utilizado = m3_informe
+            mes_original = informe["mes"]
+            estado = "SOLO_INFORME"
+
+        registros.append(
+            {
+                "clave_mes": clave_mes,
+                "mes_original": mes_original,
+                "m3": m3_utilizado,
+                "m3_informe": m3_informe,
+                "m3_formato_3": m3_formato_3,
+                "estado_validacion": estado
+            }
         )
-
-        if not mes or not m3:
-            continue
-
-        clave_mes = obtener_clave_mes(
-            mes
-        )
-
-        registros[clave_mes] = {
-            "clave_mes": clave_mes,
-            "mes_original": mes,
-            "m3": m3,
-            "fuente": "FORMATO_3"
-        }
-
-    # Informe de Facturación:
-    # tiene prioridad sobre el Formato 3.
-    for fila in regimen_facturacion:
-
-        if not isinstance(fila, dict):
-            continue
-
-        mes = str(
-            fila.get("mes", "")
-        ).strip()
-
-        m3 = limpiar_m3(
-            fila.get(
-                "m3_facturado",
-                ""
-            )
-        )
-
-        if not mes or not m3:
-            continue
-
-        clave_mes = obtener_clave_mes(
-            mes
-        )
-
-        registros[clave_mes] = {
-            "clave_mes": clave_mes,
-            "mes_original": mes,
-            "m3": m3,
-            "fuente": "INFORME_FACTURACION"
-        }
 
     return ordenar_registros(
-        list(
-            registros.values()
-        )
+        registros
     )
 
 
