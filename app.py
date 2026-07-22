@@ -54,6 +54,11 @@ from funciones_cruce_expedientes import (
     cruzar_data_open_numero_documento
 )
 
+from funciones_ensamblaje import (
+    buscar_registro_cruce,
+    ensamblar_resolucion
+)
+
 app = FastAPI()
 
 
@@ -700,3 +705,199 @@ async def buscar_documentos_pdf_api(
     )
 
     return paginas
+
+@app.post("/ensamblar_resolucion")
+async def ensamblar_resolucion_api(
+    archivo_data_open: UploadFile = File(...),
+    archivo_inspecciones: UploadFile = File(...),
+    archivo_numero_documento: UploadFile = File(...),
+    archivo_formato_2: UploadFile = File(...),
+    archivo_informe: UploadFile = File(...),
+    archivo_formato_4: UploadFile = File(...)
+):
+
+    contenido_data_open = (
+        await archivo_data_open.read()
+    )
+
+    contenido_inspecciones = (
+        await archivo_inspecciones.read()
+    )
+
+    contenido_numero_documento = (
+        await archivo_numero_documento.read()
+    )
+
+    contenido_formato_2 = (
+        await archivo_formato_2.read()
+    )
+
+    contenido_informe = (
+        await archivo_informe.read()
+    )
+
+    contenido_formato_4 = (
+        await archivo_formato_4.read()
+    )
+
+    datos_formato_2 = obtener_datos_formato_2(
+        contenido_formato_2
+    )
+
+    if not isinstance(
+        datos_formato_2,
+        dict
+    ):
+
+        return {
+            "estado": "ERROR_FORMATO_2"
+        }
+
+    re_formato_2 = datos_formato_2.get(
+        "re",
+        ""
+    )
+
+    niss_formato_2 = datos_formato_2.get(
+        "niss",
+        ""
+    )
+
+    try:
+
+        cruce_inspecciones = (
+            cruzar_data_open_inspecciones(
+                archivo_data_open=BytesIO(
+                    contenido_data_open
+                ),
+                archivo_inspecciones=BytesIO(
+                    contenido_inspecciones
+                )
+            )
+        )
+
+        cruce_encabezados = (
+            cruzar_data_open_numero_documento(
+                archivo_data_open=BytesIO(
+                    contenido_data_open
+                ),
+                archivo_numero_documento=BytesIO(
+                    contenido_numero_documento
+                )
+            )
+        )
+
+    except ValueError as error:
+
+        return {
+            "estado": "ERROR_COLUMNAS_EXCEL",
+            "detalle": str(error)
+        }
+
+    expediente_inspeccion = buscar_registro_cruce(
+        resultado_cruce=cruce_inspecciones,
+        nombre_lista="expedientes",
+        re_buscado=re_formato_2,
+        niss_buscado=niss_formato_2
+    )
+
+    encabezado = buscar_registro_cruce(
+        resultado_cruce=cruce_encabezados,
+        nombre_lista="encabezados",
+        re_buscado=re_formato_2,
+        niss_buscado=niss_formato_2
+    )
+
+    if not expediente_inspeccion:
+
+        return {
+            "estado": "SIN_CRUCE_INSPECCION",
+            "re": re_formato_2,
+            "niss": niss_formato_2
+        }
+
+    if expediente_inspeccion.get(
+        "estado_cruce"
+    ) != "VALIDADO":
+
+        return {
+            "estado": "INSPECCION_REQUIERE_REVISION",
+            "detalle": expediente_inspeccion
+        }
+
+    if not encabezado:
+
+        return {
+            "estado": "SIN_CRUCE_ENCABEZADO",
+            "re": re_formato_2,
+            "niss": niss_formato_2
+        }
+
+    if encabezado.get(
+        "estado_cruce"
+    ) != "VALIDADO":
+
+        return {
+            "estado": "ENCABEZADO_REQUIERE_REVISION",
+            "detalle": encabezado
+        }
+
+    datos_inspeccion = expediente_inspeccion.get(
+        "datos_inspeccion",
+        {}
+    )
+
+    datos_informe = (
+        obtener_datos_informe_facturacion(
+            contenido_informe
+        )
+    )
+
+    datos_formato_4 = obtener_datos_formato_4(
+        contenido_formato_4
+    )
+
+    validacion_formato_4 = (
+        consolidar_formato_2_y_4(
+            datos_formato_2=datos_formato_2,
+            datos_formato_4=datos_formato_4,
+            nombre_archivo_formato_4=(
+                archivo_formato_4.filename
+                or ""
+            )
+        )
+    )
+
+    resultado = ensamblar_resolucion(
+        datos_formato_2=datos_formato_2,
+        datos_inspeccion=datos_inspeccion,
+        datos_informe=datos_informe,
+        validacion_formato_4=(
+            validacion_formato_4
+        ),
+        encabezado=encabezado
+    )
+
+    resultado["origenes"] = {
+        "archivo_formato_2": (
+            archivo_formato_2.filename
+        ),
+        "archivo_informe": (
+            archivo_informe.filename
+        ),
+        "archivo_formato_4": (
+            archivo_formato_4.filename
+        ),
+        "num_os": expediente_inspeccion.get(
+            "num_os",
+            ""
+        ),
+        "fecha_inspeccion": (
+            expediente_inspeccion.get(
+                "fecha_inspeccion",
+                ""
+            )
+        )
+    }
+
+    return resultado
