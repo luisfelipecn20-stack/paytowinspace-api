@@ -549,3 +549,337 @@ def cruzar_data_open_inspecciones(
         ),
         "expedientes": expedientes
     }
+
+MESES_RESOLUCION = {
+    1: "Enero",
+    2: "Febrero",
+    3: "Marzo",
+    4: "Abril",
+    5: "Mayo",
+    6: "Junio",
+    7: "Julio",
+    8: "Agosto",
+    9: "Setiembre",
+    10: "Octubre",
+    11: "Noviembre",
+    12: "Diciembre"
+}
+
+
+COLUMNAS_NUMERO_DOCUMENTO = {
+    "num_re",
+    "nis_rad",
+    "des_tip_ntf",
+    "nro_doc_ntf",
+    "f_emision_ntf"
+}
+
+
+def limpiar_texto_excel(valor):
+
+    if pd.isna(valor):
+        return ""
+
+    return str(valor).strip()
+
+
+def formatear_fecha_resolucion(valor):
+
+    fecha = pd.to_datetime(
+        valor,
+        errors="coerce"
+    )
+
+    if pd.isna(fecha):
+        return ""
+
+    nombre_mes = MESES_RESOLUCION.get(
+        fecha.month,
+        ""
+    )
+
+    if not nombre_mes:
+        return ""
+
+    return (
+        f"Callao, {fecha.day} de "
+        f"{nombre_mes} de {fecha.year}"
+    )
+
+
+def cruzar_data_open_numero_documento(
+    archivo_data_open,
+    archivo_numero_documento
+):
+
+    dataframe_open = pd.read_excel(
+        archivo_data_open
+    )
+
+    dataframe_documentos = pd.read_excel(
+        archivo_numero_documento,
+        usecols=lambda columna: (
+            str(columna).strip()
+            in COLUMNAS_NUMERO_DOCUMENTO
+        )
+    )
+
+    dataframe_open.columns = [
+        str(columna).strip()
+        for columna in dataframe_open.columns
+    ]
+
+    dataframe_documentos.columns = [
+        str(columna).strip()
+        for columna in dataframe_documentos.columns
+    ]
+
+    validar_columnas(
+        dataframe_open,
+        COLUMNAS_DATA_OPEN,
+        "DATA_OPEN"
+    )
+
+    validar_columnas(
+        dataframe_documentos,
+        COLUMNAS_NUMERO_DOCUMENTO,
+        "NUMERO_DOCUMENTO"
+    )
+
+    dataframe_documentos[
+        "_re_normalizado"
+    ] = dataframe_documentos[
+        "num_re"
+    ].apply(
+        normalizar_re
+    )
+
+    dataframe_documentos[
+        "_niss_normalizado"
+    ] = dataframe_documentos[
+        "nis_rad"
+    ].apply(
+        normalizar_numero
+    )
+
+    dataframe_documentos[
+        "_tipo_documento"
+    ] = dataframe_documentos[
+        "des_tip_ntf"
+    ].astype(str).str.strip().str.upper()
+
+    # Únicamente se utilizan resoluciones iniciales.
+    dataframe_documentos = (
+        dataframe_documentos[
+            dataframe_documentos[
+                "_tipo_documento"
+            ]
+            == "RESOLUCION (INICIAL)"
+        ].copy()
+    )
+
+    encabezados = []
+    claves_data_open = set()
+
+    for _, fila_open in dataframe_open.iterrows():
+
+        re_open = normalizar_re(
+            fila_open.get(
+                "num_re",
+                ""
+            )
+        )
+
+        niss_open = normalizar_numero(
+            fila_open.get(
+                "nis_rad",
+                ""
+            )
+        )
+
+        clave = (
+            re_open,
+            niss_open
+        )
+
+        encabezado = {
+            "re": re_open,
+            "niss": niss_open,
+            "numero_resolucion": "",
+            "fecha_emision": "",
+            "linea_resolucion": "",
+            "linea_fecha": "",
+            "estado_cruce": ""
+        }
+
+        if not re_open or not niss_open:
+
+            encabezado["estado_cruce"] = (
+                "DATOS_CLAVE_INVALIDOS"
+            )
+
+            encabezados.append(
+                encabezado
+            )
+
+            continue
+
+        if clave in claves_data_open:
+
+            encabezado["estado_cruce"] = (
+                "DUPLICADO_DATA_OPEN"
+            )
+
+            encabezados.append(
+                encabezado
+            )
+
+            continue
+
+        claves_data_open.add(
+            clave
+        )
+
+        coincidencias = dataframe_documentos[
+            (
+                dataframe_documentos[
+                    "_re_normalizado"
+                ]
+                == re_open
+            )
+            & (
+                dataframe_documentos[
+                    "_niss_normalizado"
+                ]
+                == niss_open
+            )
+        ]
+
+        if coincidencias.empty:
+
+            encabezado["estado_cruce"] = (
+                "SIN_NUMERO_DOCUMENTO"
+            )
+
+            encabezados.append(
+                encabezado
+            )
+
+            continue
+
+        if len(coincidencias) > 1:
+
+            encabezado["estado_cruce"] = (
+                "DUPLICADO_REQUIERE_REVISION"
+            )
+
+            encabezados.append(
+                encabezado
+            )
+
+            continue
+
+        fila_documento = (
+            coincidencias.iloc[0]
+        )
+
+        numero_resolucion = limpiar_texto_excel(
+            fila_documento.get(
+                "nro_doc_ntf",
+                ""
+            )
+        )
+
+        fecha_emision = formatear_fecha(
+            fila_documento.get(
+                "f_emision_ntf",
+                ""
+            )
+        )
+
+        linea_fecha = formatear_fecha_resolucion(
+            fila_documento.get(
+                "f_emision_ntf",
+                ""
+            )
+        )
+
+        if (
+            not numero_resolucion
+            or not fecha_emision
+            or not linea_fecha
+        ):
+
+            encabezado["estado_cruce"] = (
+                "DATOS_DOCUMENTO_INCOMPLETOS"
+            )
+
+            encabezados.append(
+                encabezado
+            )
+
+            continue
+
+        encabezado.update(
+            {
+                "numero_resolucion": (
+                    numero_resolucion
+                ),
+                "fecha_emision": (
+                    fecha_emision
+                ),
+                "linea_resolucion": (
+                    "RESOLUCIÓN N° "
+                    f"{numero_resolucion}"
+                ),
+                "linea_fecha": linea_fecha,
+                "estado_cruce": "VALIDADO"
+            }
+        )
+
+        encabezados.append(
+            encabezado
+        )
+
+    total_solicitados = len(
+        encabezados
+    )
+
+    total_validados = sum(
+        encabezado["estado_cruce"]
+        == "VALIDADO"
+        for encabezado in encabezados
+    )
+
+    total_observados = (
+        total_solicitados
+        - total_validados
+    )
+
+    if total_solicitados == 0:
+
+        estado = "SIN_CASOS"
+
+    elif total_observados == 0:
+
+        estado = "VALIDADO"
+
+    else:
+
+        estado = (
+            "VALIDADO_CON_OBSERVACIONES"
+        )
+
+    return {
+        "estado": estado,
+        "total_solicitados": (
+            total_solicitados
+        ),
+        "total_validados": (
+            total_validados
+        ),
+        "total_observados": (
+            total_observados
+        ),
+        "encabezados": encabezados
+    }
