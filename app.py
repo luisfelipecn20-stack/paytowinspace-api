@@ -45,7 +45,8 @@ from funciones_articulos import (
     obtener_se_resuelve,
     generar_articulo_1,
     obtener_articulo_2,
-    obtener_cierre
+    obtener_cierre,
+    obtener_datos_firma_resolucion
 )
 
 app = FastAPI()
@@ -369,6 +370,10 @@ async def generar_cierre_resolucion_api(
 
     cierre = obtener_cierre()
 
+    datos_firma = (
+        obtener_datos_firma_resolucion()
+    )
+    
     if (
         considerando_6
         and articulo_1
@@ -401,7 +406,8 @@ async def generar_cierre_resolucion_api(
         "se_resuelve": se_resuelve,
         "articulo_1": articulo_1,
         "articulo_2": articulo_2,
-        "cierre": cierre
+        "cierre": cierre,
+        "firma_resolucion": datos_firma
     }
 
 @app.post("/generar_considerando_2")
