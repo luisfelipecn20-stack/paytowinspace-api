@@ -2,6 +2,7 @@ import pandas as pd
 import base64
 from io import BytesIO
 from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from funciones_pdf import (
     contar_paginas_pdf,
@@ -57,6 +58,10 @@ from funciones_cruce_expedientes import (
 from funciones_ensamblaje import (
     buscar_registro_cruce,
     ensamblar_resolucion
+)
+
+from funciones_pdf_resolucion import (
+    generar_pdf_resolucion
 )
 
 app = FastAPI()
@@ -901,3 +906,82 @@ async def ensamblar_resolucion_api(
     }
 
     return resultado
+
+@app.post("/generar_pdf_resolucion")
+async def generar_pdf_resolucion_api(
+    archivo_data_open: UploadFile = File(...),
+    archivo_inspecciones: UploadFile = File(...),
+    archivo_numero_documento: UploadFile = File(...),
+    archivo_formato_2: UploadFile = File(...),
+    archivo_informe: UploadFile = File(...),
+    archivo_formato_4: UploadFile = File(...)
+):
+
+    resultado = await ensamblar_resolucion_api(
+        archivo_data_open=archivo_data_open,
+        archivo_inspecciones=(
+            archivo_inspecciones
+        ),
+        archivo_numero_documento=(
+            archivo_numero_documento
+        ),
+        archivo_formato_2=archivo_formato_2,
+        archivo_informe=archivo_informe,
+        archivo_formato_4=archivo_formato_4
+    )
+
+    if not isinstance(
+        resultado,
+        dict
+    ):
+
+        return {
+            "estado": "ERROR_ENSAMBLAJE"
+        }
+
+    if resultado.get(
+        "estado"
+    ) != "GENERADO":
+
+        return resultado
+
+    try:
+
+        contenido_pdf = generar_pdf_resolucion(
+            resultado
+        )
+
+    except (
+        ValueError,
+        FileNotFoundError
+    ) as error:
+
+        return {
+            "estado": "ERROR_GENERACION_PDF",
+            "detalle": str(error)
+        }
+
+    re_final = resultado.get(
+        "datos_expediente",
+        {}
+    ).get(
+        "re",
+        ""
+    )
+
+    nombre_archivo = (
+        f"Resolucion_{re_final}.pdf"
+    )
+
+    return StreamingResponse(
+        BytesIO(
+            contenido_pdf
+        ),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                "attachment; "
+                f'filename="{nombre_archivo}"'
+            )
+        }
+    )
