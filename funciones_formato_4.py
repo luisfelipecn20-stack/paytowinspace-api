@@ -292,8 +292,6 @@ def clasificar_resultado_audiencia(
         texto
     )
 
-    # Si no se pudo leer información,
-    # no se debe inventar un resultado.
     if (
         not texto_normalizado
         and subsiste_reclamo not in {
@@ -303,24 +301,19 @@ def clasificar_resultado_audiencia(
     ):
         return ""
 
-    # La ausencia se identifica por palabras
-    # dentro de los recuadros del acta.
     if contiene_ausencia(texto):
         return "AUSENTE"
 
+    # Casos excluidos de PEIAD V1.
     if (
         subsiste_reclamo == "NO"
         or "DESISTIMIENTO" in texto_normalizado
         or "DESISTE" in texto_normalizado
+        or contiene_acuerdo(texto)
+        or detectar_solicitud_contraste(texto) == "SI"
     ):
-        return "DESISTIMIENTO"
+        return "FUERA_ALCANCE_V1"
 
-    if contiene_acuerdo(texto):
-        return "ACUERDO"
-
-    # Si no se indica ausencia, acuerdo ni
-    # desistimiento, se entiende que el
-    # reclamo continúa sin acuerdo.
     return "SIN_ACUERDO"
 
 
@@ -331,33 +324,10 @@ def determinar_continuidad(
     texto
 ):
 
-    # La ausencia no detiene el reclamo.
-    if resultado_audiencia == "AUSENTE":
-        return "SI"
-
-    # Si no existió acuerdo, continúa
-    # el procedimiento administrativo.
-    if resultado_audiencia == "SIN_ACUERDO":
-        return "SI"
-
-    # Una solicitud posterior de contraste
-    # también significa que el reclamo continúa.
-    if solicita_contraste_acta == "SI":
-        return "SI"
-
     if resultado_audiencia in {
-        "ACUERDO",
-        "DESISTIMIENTO"
+        "AUSENTE",
+        "SIN_ACUERDO"
     }:
-        return "NO"
-
-    if subsiste_reclamo == "NO":
-        return "NO"
-
-    if subsiste_reclamo == "SI":
-        return "SI"
-
-    if contiene_continuidad(texto):
         return "SI"
 
     return ""
@@ -943,9 +913,18 @@ def consolidar_formato_2_y_4(
     # ESTADO GENERAL
     # ==========================
 
+    caso_soportado_v1 = (
+        resultado_audiencia
+        in {
+            "AUSENTE",
+            "SIN_ACUERDO"
+        }
+    )
+
     requiere_revision = (
         not acta_corresponde_expediente
         or validacion_fecha == "DIFERENCIA"
+        or not caso_soportado_v1
     )
 
     if not acta_corresponde_expediente:
@@ -960,6 +939,18 @@ def consolidar_formato_2_y_4(
             "VALIDADO_CON_DIFERENCIA_FECHA"
         )
 
+    elif not resultado_audiencia:
+
+        estado_validacion = (
+            "SIN_RESULTADO_AUDIENCIA"
+        )
+
+    elif not caso_soportado_v1:
+
+        estado_validacion = (
+            "FUERA_ALCANCE_V1"
+        )
+
     else:
 
         estado_validacion = "VALIDADO"
@@ -967,6 +958,9 @@ def consolidar_formato_2_y_4(
     return {
         "estado_validacion": estado_validacion,
         "requiere_revision": requiere_revision,
+        "caso_soportado_v1": (
+            caso_soportado_v1
+        ),
 
         "re_formato_2": re_formato_2,
         "re_formato_4_vision": (
