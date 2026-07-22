@@ -11,3 +11,4 @@ pdf2image
 msal
 requests
 pypdf
+xlrd==2.0.2
