@@ -50,7 +50,8 @@ from funciones_articulos import (
 )
 
 from funciones_cruce_expedientes import (
-    cruzar_data_open_inspecciones
+    cruzar_data_open_inspecciones,
+    cruzar_data_open_numero_documento
 )
 
 app = FastAPI()
@@ -182,6 +183,42 @@ async def cruzar_data_open_inspecciones_api(
                 ),
                 archivo_inspecciones=BytesIO(
                     contenido_inspecciones
+                )
+            )
+        )
+
+    except ValueError as error:
+
+        return {
+            "estado": "ERROR_COLUMNAS",
+            "detalle": str(error)
+        }
+
+    return resultado
+
+@app.post("/generar_encabezados_resolucion")
+async def generar_encabezados_resolucion_api(
+    archivo_data_open: UploadFile = File(...),
+    archivo_numero_documento: UploadFile = File(...)
+):
+
+    contenido_data_open = (
+        await archivo_data_open.read()
+    )
+
+    contenido_numero_documento = (
+        await archivo_numero_documento.read()
+    )
+
+    try:
+
+        resultado = (
+            cruzar_data_open_numero_documento(
+                archivo_data_open=BytesIO(
+                    contenido_data_open
+                ),
+                archivo_numero_documento=BytesIO(
+                    contenido_numero_documento
                 )
             )
         )
