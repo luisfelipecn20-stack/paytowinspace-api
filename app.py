@@ -36,6 +36,18 @@ from funciones_considerando_5 import (
     generar_considerando_5
 )
 
+from funciones_considerando_6 import (
+    generar_considerando_6
+)
+
+from funciones_articulos import (
+    obtener_parrafo_base_legal,
+    obtener_se_resuelve,
+    generar_articulo_1,
+    obtener_articulo_2,
+    obtener_cierre
+)
+
 app = FastAPI()
 
 
@@ -315,6 +327,81 @@ async def generar_considerando_5_api(
         ),
         "validacion": validacion,
         "considerando_5": considerando_5
+    }
+
+@app.post("/generar_cierre_resolucion")
+async def generar_cierre_resolucion_api(
+    archivo_formato_2: UploadFile = File(...)
+):
+
+    contenido_formato_2 = (
+        await archivo_formato_2.read()
+    )
+
+    datos_formato_2 = obtener_datos_formato_2(
+        contenido_formato_2
+    )
+
+    if not isinstance(
+        datos_formato_2,
+        dict
+    ):
+
+        return {
+            "estado": "ERROR_FORMATO_2"
+        }
+
+    considerando_6 = generar_considerando_6(
+        datos_formato_2
+    )
+
+    parrafo_base_legal = (
+        obtener_parrafo_base_legal()
+    )
+
+    se_resuelve = obtener_se_resuelve()
+
+    articulo_1 = generar_articulo_1(
+        datos_formato_2
+    )
+
+    articulo_2 = obtener_articulo_2()
+
+    cierre = obtener_cierre()
+
+    if (
+        considerando_6
+        and articulo_1
+    ):
+
+        estado = "GENERADO"
+
+    else:
+
+        estado = "PENDIENTE_SIN_DATOS"
+
+    return {
+        "estado": estado,
+        "re": datos_formato_2.get(
+            "re",
+            ""
+        ),
+        "tipo_reclamo": datos_formato_2.get(
+            "tipo_reclamo",
+            ""
+        ),
+        "meses_reclamados": datos_formato_2.get(
+            "meses_reclamados",
+            []
+        ),
+        "considerando_6": considerando_6,
+        "parrafo_base_legal": (
+            parrafo_base_legal
+        ),
+        "se_resuelve": se_resuelve,
+        "articulo_1": articulo_1,
+        "articulo_2": articulo_2,
+        "cierre": cierre
     }
 
 @app.post("/generar_considerando_2")
