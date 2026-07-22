@@ -12,3 +12,4 @@ msal
 requests
 pypdf
 xlrd==2.0.2
+reportlab
