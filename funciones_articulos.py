@@ -38,6 +38,9 @@ def obtener_parrafo_base_legal():
 
     return PARRAFO_BASE_LEGAL
 
+def obtener_se_resuelve():
+
+    return "Se Resuelve:"
 
 def generar_articulo_1(
     datos_formato_2
