@@ -304,13 +304,37 @@ def clasificar_resultado_audiencia(
     if contiene_ausencia(texto):
         return "AUSENTE"
 
+    texto_instructivo_desistimiento = (
+        (
+            "SI EL RECLAMANTE MARCA "
+            "LA CASILLA NO"
+        )
+        in texto_normalizado
+        and (
+            "IMPLICA EL DESISTIMIENTO "
+            "DEL RECLAMO"
+        )
+        in texto_normalizado
+    )
+
+    desistimiento_real = (
+        (
+            "DESISTIMIENTO"
+            in texto_normalizado
+            or "DESISTE"
+            in texto_normalizado
+        )
+        and not texto_instructivo_desistimiento
+    )
+    
     # Casos excluidos de PEIAD V1.
     if (
         subsiste_reclamo == "NO"
-        or "DESISTIMIENTO" in texto_normalizado
-        or "DESISTE" in texto_normalizado
+        or desistimiento_real
         or contiene_acuerdo(texto)
-        or detectar_solicitud_contraste(texto) == "SI"
+        or detectar_solicitud_contraste(
+            texto
+        ) == "SI"
     ):
         return "FUERA_ALCANCE_V1"
 
