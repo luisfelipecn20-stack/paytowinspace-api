@@ -32,6 +32,10 @@ from funciones_formato_4 import (
     consolidar_formato_2_y_4
 )
 
+from funciones_considerando_5 import (
+    generar_considerando_5
+)
+
 app = FastAPI()
 
 
@@ -231,6 +235,86 @@ async def validar_formatos_2_y_4(
         "datos_formato_2": datos_formato_2,
         "datos_formato_4": datos_formato_4,
         "validacion": validacion
+    }
+
+@app.post("/generar_considerando_5")
+async def generar_considerando_5_api(
+    archivo_formato_2: UploadFile = File(...),
+    archivo_formato_4: UploadFile = File(...)
+):
+
+    contenido_formato_2 = (
+        await archivo_formato_2.read()
+    )
+
+    contenido_formato_4 = (
+        await archivo_formato_4.read()
+    )
+
+    datos_formato_2 = obtener_datos_formato_2(
+        contenido_formato_2
+    )
+
+    datos_formato_4 = obtener_datos_formato_4(
+        contenido_formato_4
+    )
+
+    validacion = consolidar_formato_2_y_4(
+        datos_formato_2=datos_formato_2,
+        datos_formato_4=datos_formato_4,
+        nombre_archivo_formato_4=(
+            archivo_formato_4.filename
+            or ""
+        )
+    )
+
+    considerando_5 = generar_considerando_5(
+        datos_formato_2=datos_formato_2,
+        validacion_formato_4=validacion
+    )
+
+    if considerando_5:
+
+        estado = "GENERADO"
+
+    elif validacion.get(
+        "requiere_revision"
+    ):
+
+        estado = "REQUIERE_REVISION"
+
+    else:
+
+        estado = "PENDIENTE_SIN_DATOS"
+
+    return {
+        "estado": estado,
+        "re_final": validacion.get(
+            "re_final",
+            ""
+        ),
+        "fecha_audiencia": validacion.get(
+            "fecha_audiencia_final",
+            ""
+        ),
+        "resultado_audiencia": validacion.get(
+            "resultado_audiencia",
+            ""
+        ),
+        "continua_reclamo": validacion.get(
+            "continua_reclamo",
+            ""
+        ),
+        "caso_soportado_v1": validacion.get(
+            "caso_soportado_v1",
+            False
+        ),
+        "requiere_revision": validacion.get(
+            "requiere_revision",
+            True
+        ),
+        "validacion": validacion,
+        "considerando_5": considerando_5
     }
 
 @app.post("/generar_considerando_2")
