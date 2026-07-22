@@ -33,6 +33,11 @@ ARTICULO_2 = (
     "Nacional de Servicio de Saneamiento."
 )
 
+DATOS_FIRMA_RESOLUCION = {
+    "nombre_jefe": "Alan Contreras Angulo",
+    "cargo_jefe": "Jefe Equipo Comercial Callao",
+    "codigo_elaborador": "SD015515"
+}
 
 def obtener_parrafo_base_legal():
 
@@ -92,3 +97,7 @@ def obtener_cierre():
     return (
         "Regístrese, comuníquese y archívese"
     )
+
+def obtener_datos_firma_resolucion():
+
+    return DATOS_FIRMA_RESOLUCION.copy()
