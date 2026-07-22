@@ -256,20 +256,58 @@ def generar_considerando_1(datos_inspeccion):
         datos_inspeccion["lec"] = int(lectura)
 
     # Normalizar fecha
-    fecha = datos_inspeccion.get("fec_vis")
+    fecha = datos_inspeccion.get(
+        "fec_vis"
+    )
 
-    if fecha:
+    if not fecha:
+        return ""
 
-        if isinstance(fecha, str):
+    if isinstance(
+        fecha,
+        datetime
+    ):
 
-            fecha = datetime.fromisoformat(
-                fecha.replace("Z", "")
-            )
+        fecha_convertida = fecha
 
-        datos_inspeccion["fec_vis"] = (
-            fecha.strftime("%d/%m/%Y")
+    else:
+
+        fecha_texto = str(
+            fecha
+        ).strip()
+
+        try:
+
+            if "/" in fecha_texto:
+
+                fecha_convertida = datetime.strptime(
+                    fecha_texto,
+                    "%d/%m/%Y"
+                )
+
+            else:
+
+                fecha_convertida = (
+                    datetime.fromisoformat(
+                        fecha_texto.replace(
+                            "Z",
+                            ""
+                        )
+                    )
+                )
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
+            return ""
+
+    datos_inspeccion["fec_vis"] = (
+        fecha_convertida.strftime(
+            "%d/%m/%Y"
         )
-
+    )
     # Determinar estado de las instalaciones internas
 
     if datos_inspeccion.get("estado_instalaciones"):
