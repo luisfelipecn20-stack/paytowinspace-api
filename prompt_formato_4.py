@@ -71,10 +71,11 @@ a expresiones relacionadas con:
 - inasistencia
 - no asistió
 - no se presentó
+- no se llegó a ninguna fórmula de solución
+- no hubo acuerdo
 - continuación del reclamo
+- continúa con el proceso de reclamo
 - proceso por la vía administrativa
-- solicitud de verificación del medidor
-- solicitud de contrastación del medidor
 - nueva dirección procesal
 - nuevo domicilio procesal
 - dirección para notificaciones
