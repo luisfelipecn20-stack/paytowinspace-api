@@ -49,6 +49,10 @@ from funciones_articulos import (
     obtener_datos_firma_resolucion
 )
 
+from funciones_cruce_expedientes import (
+    cruzar_data_open_inspecciones
+)
+
 app = FastAPI()
 
 
@@ -155,6 +159,41 @@ async def analizar_inspeccion(archivo: UploadFile = File(...)):
 
         return datos_inspeccion
 
+@app.post("/cruzar_data_open_inspecciones")
+async def cruzar_data_open_inspecciones_api(
+    archivo_data_open: UploadFile = File(...),
+    archivo_inspecciones: UploadFile = File(...)
+):
+
+    contenido_data_open = (
+        await archivo_data_open.read()
+    )
+
+    contenido_inspecciones = (
+        await archivo_inspecciones.read()
+    )
+
+    try:
+
+        resultado = (
+            cruzar_data_open_inspecciones(
+                archivo_data_open=BytesIO(
+                    contenido_data_open
+                ),
+                archivo_inspecciones=BytesIO(
+                    contenido_inspecciones
+                )
+            )
+        )
+
+    except ValueError as error:
+
+        return {
+            "estado": "ERROR_COLUMNAS",
+            "detalle": str(error)
+        }
+
+    return resultado
 
 @app.post("/generar_considerando_1")
 async def generar_considerando_1_api(
