@@ -209,6 +209,22 @@ def crear_tabla_datos(
 
     contenido = []
 
+    correo_electronico = str(
+        datos_expediente.get(
+            "correo_electronico",
+            ""
+        )
+    ).strip()
+
+    if correo_electronico:
+
+        filas.append(
+            (
+                "Correo electrónico",
+                correo_electronico
+            )
+        )
+
     for etiqueta, valor in filas:
 
         contenido.append(
@@ -439,9 +455,9 @@ def generar_pdf_resolucion(
 
     marco_segunda = Frame(
         MARGEN_IZQUIERDO,
-        20 * mm,
+        29.5 * mm,
         ANCHO_CONTENIDO,
-        274 * mm,
+        224.8 * mm,
         leftPadding=0,
         rightPadding=0,
         topPadding=0,
@@ -460,7 +476,8 @@ def generar_pdf_resolucion(
 
     plantilla_segunda = PageTemplate(
         id="SegundaPagina",
-        frames=[marco_segunda]
+        frames=[marco_segunda],
+        onPage=dibujar_primera_pagina
     )
 
     documento.addPageTemplates(
