@@ -1,6 +1,7 @@
 import pandas as pd
 import base64
 from io import BytesIO
+from zipfile import ZipFile, ZIP_DEFLATED
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -982,6 +983,223 @@ async def generar_pdf_resolucion_api(
             "Content-Disposition": (
                 "attachment; "
                 f'filename="{nombre_archivo}"'
+            )
+        }
+    )
+
+
+@app.post("/generar_pdfs_lote")
+async def generar_pdfs_lote_api(
+    archivo_data_open: UploadFile = File(...),
+    archivo_inspecciones: UploadFile = File(...),
+    archivo_numero_documento: UploadFile = File(...),
+    archivos_formato_2: list[UploadFile] = File(...),
+    archivos_informe: list[UploadFile] = File(...),
+    archivos_formato_4: list[UploadFile] = File(...)
+):
+
+    cantidades = {
+        "formatos_2": len(
+            archivos_formato_2
+        ),
+        "informes": len(
+            archivos_informe
+        ),
+        "formatos_4": len(
+            archivos_formato_4
+        )
+    }
+
+    if any(
+        cantidad != 3
+        for cantidad in cantidades.values()
+    ):
+
+        return {
+            "estado": "CANTIDAD_ARCHIVOS_INVALIDA",
+            "detalle": (
+                "Para esta prueba deben cargarse "
+                "exactamente 3 archivos de cada tipo."
+            ),
+            "cantidades_recibidas": cantidades
+        }
+
+    resultados = []
+    resoluciones_pdf = []
+
+    expedientes = zip(
+        archivos_formato_2,
+        archivos_informe,
+        archivos_formato_4
+    )
+
+    for posicion, expediente in enumerate(
+        expedientes,
+        start=1
+    ):
+
+        archivo_formato_2 = expediente[0]
+        archivo_informe = expediente[1]
+        archivo_formato_4 = expediente[2]
+
+        await archivo_data_open.seek(0)
+        await archivo_inspecciones.seek(0)
+        await archivo_numero_documento.seek(0)
+
+        resultado = await ensamblar_resolucion_api(
+            archivo_data_open=archivo_data_open,
+            archivo_inspecciones=(
+                archivo_inspecciones
+            ),
+            archivo_numero_documento=(
+                archivo_numero_documento
+            ),
+            archivo_formato_2=archivo_formato_2,
+            archivo_informe=archivo_informe,
+            archivo_formato_4=archivo_formato_4
+        )
+
+        if not isinstance(
+            resultado,
+            dict
+        ):
+
+            resultados.append(
+                {
+                    "posicion": posicion,
+                    "estado": "ERROR_ENSAMBLAJE"
+                }
+            )
+
+            continue
+
+        estado = resultado.get(
+            "estado",
+            ""
+        )
+
+        re_final = resultado.get(
+            "datos_expediente",
+            {}
+        ).get(
+            "re",
+            ""
+        )
+
+        registro_resultado = {
+            "posicion": posicion,
+            "re": re_final,
+            "estado": estado,
+            "archivo_formato_2": (
+                archivo_formato_2.filename
+            ),
+            "archivo_informe": (
+                archivo_informe.filename
+            ),
+            "archivo_formato_4": (
+                archivo_formato_4.filename
+            )
+        }
+
+        if estado != "GENERADO":
+
+            registro_resultado[
+                "componentes_faltantes"
+            ] = resultado.get(
+                "componentes_faltantes",
+                []
+            )
+
+            resultados.append(
+                registro_resultado
+            )
+
+            continue
+
+        try:
+
+            contenido_pdf = generar_pdf_resolucion(
+                resultado
+            )
+
+        except (
+            ValueError,
+            FileNotFoundError
+        ) as error:
+
+            registro_resultado[
+                "estado"
+            ] = "ERROR_GENERACION_PDF"
+
+            registro_resultado[
+                "detalle"
+            ] = str(error)
+
+            resultados.append(
+                registro_resultado
+            )
+
+            continue
+
+        nombre_pdf = (
+            f"Resolucion_{re_final}.pdf"
+        )
+
+        resoluciones_pdf.append(
+            (
+                nombre_pdf,
+                contenido_pdf
+            )
+        )
+
+        resultados.append(
+            registro_resultado
+        )
+
+    tiene_errores = any(
+        resultado.get(
+            "estado"
+        ) != "GENERADO"
+        for resultado in resultados
+    )
+
+    if tiene_errores:
+
+        return {
+            "estado": "LOTE_REQUIERE_REVISION",
+            "total_solicitados": 3,
+            "total_generados": len(
+                resoluciones_pdf
+            ),
+            "resultados": resultados
+        }
+
+    memoria_zip = BytesIO()
+
+    with ZipFile(
+        memoria_zip,
+        mode="w",
+        compression=ZIP_DEFLATED
+    ) as archivo_zip:
+
+        for nombre_pdf, contenido_pdf in (
+            resoluciones_pdf
+        ):
+
+            archivo_zip.writestr(
+                nombre_pdf,
+                contenido_pdf
+            )
+
+    memoria_zip.seek(0)
+
+    return StreamingResponse(
+        memoria_zip,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": (
+                "attachment; "
+                'filename="Resoluciones_lote.zip"'
             )
         }
     )
