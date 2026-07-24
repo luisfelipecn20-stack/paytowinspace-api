@@ -649,7 +649,7 @@ def generar_pdf_resolucion(
     historia.append(
         Spacer(
             1,
-            5.6 * mm
+            2 * mm
         )
     )
 
